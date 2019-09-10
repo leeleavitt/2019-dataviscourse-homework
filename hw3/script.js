@@ -4,6 +4,14 @@
  * Note: use only the DOM API, not D3!
  */
 function staircase() {
+  //select an element from main document
+  rectsGroup = document.getElementById('aBarChart');
+  console.log(rectsGroup.children.length);
+  for(var i=0; i<rectsGroup.children.length; i++){
+    rectsGroup.children[i].setAttribute("width", i*"20"+50)
+  }
+
+  //Now loop through each 
   // ****** TODO: PART II ******
 }
 
@@ -29,16 +37,17 @@ function update(data) {
     d.b = +d.b; //unary operator converts string to number
   }
 
-  console.log(data);
   // Set up the scales
   let aScale = d3
     .scaleLinear()
     .domain([0, d3.max(data, d => d.a)])
     .range([0, 140]);
+
   let bScale = d3
     .scaleLinear()
     .domain([0, d3.max(data, d => d.b)])
     .range([0, 140]);
+
   let iScale = d3
     .scaleLinear()
     .domain([0, data.length])
@@ -47,6 +56,22 @@ function update(data) {
   // ****** TODO: PART III (you will also edit in PART V) ******
 
   // TODO: Select and update the 'a' bar chart bars
+  //select the barchart by the id
+  var aBarChart = d3
+    .select("#aBarChart");
+
+  //UPDATE rectangles with the data
+  var rects = aBarChart.selectAll('rect').data(data); //enter
+  var rectsEnter = rects.enter().append('rects');
+  //EXIT remove old elements
+  rectsEnter.exit().remove();
+  //MERGE
+  rects = rectsEnter.merge(rects)
+  
+  rects.attr('width', 100)
+  rects.attr('width', function(d){ 
+      return aScale(d) 
+  });
 
   // TODO: Select and update the 'b' bar chart bars
 
@@ -72,6 +97,9 @@ function update(data) {
 
   // ****** TODO: PART IV ******
 }
+
+//TROUBLESHOOT
+//update("data/anscombe_I.csv")
 
 /**
  * Update the data according to document settings
