@@ -18,7 +18,7 @@ class Node {
         this.parentNode = null;
 
         /** Array of Children. */
-        this.children = [];
+        this.    children = [];
 
         /** Level of the node. */
         this.level = null;
