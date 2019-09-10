@@ -73,35 +73,37 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
         }
-    </style>
+    </style>    
 </head>
 
 <body>
 <h3>CS-5630 / CS-6630 Homework 3</h3>
 <address>
-    <span>Your Name</span>
-    <span>Your Email</span>
-    <span>Your UID</span>
+    <span>Lee Leavitt</span>
+    <span>lee.leavitt.u@gmail.com</span>
+    <span>u0591788</span>
 </address>
 <br/>
 <hr/>
 <br/>
 
+<!-- STAIRCASE BUTTON -->
 <span>
-      <button>Staircase</button>
-    </span>
-
+      <button onclick="staircase()">Staircase</button>
+</span>
+<!-- DROPDOWN MENU -->
 <span>
       <label>Dataset:</label>
-      <select id="dataset">
+      <select id="dataset" onclick="changeData()">
         <option value="anscombe_I">Anscombe's Quartet I</option>
         <option selected value="anscombe_II">Anscombe's Quartet II</option>
         <option value="anscombe_III">Anscombe's Quartet III</option>
         <option value="anscombe_IV">Anscombe's Quartet IV</option>
       </select>
-    </span>
+</span>
 
-<span> <input type="checkbox" id="random"/> Random Subset </span>
+<!-- TOGGLE BUTTON FOR RANDOM SUBSET -->
+<span> <input type="checkbox" id="random" onclick="changeData()"/> Random Subset </span>
 
 <br/>
 
@@ -276,5 +278,7 @@
         </svg>
     </div>
 </div>
+<script src="https://d3js.org/d3.v5.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
