@@ -1,5 +1,4 @@
 loadData().then(data => {
-
     // no country selected by default
     this.activeCountry = null;
     // deafultActiveYear is 2000
@@ -13,10 +12,9 @@ loadData().then(data => {
      * @param countryID the ID object for the newly selected country
      */
     function updateCountry(countryID) {
-
         that.activeCountry = countryID;
-
         //TODO - Your code goes here - 
+
 
     }
 
@@ -54,6 +52,8 @@ loadData().then(data => {
 
     // This clears a selection by listening for a click
     document.addEventListener("click", function(e) {
+        console.log(this)
+        console.log('you clicked')
         //TODO - Your code goes here - 
 		// call clear highight methods
     }, true);

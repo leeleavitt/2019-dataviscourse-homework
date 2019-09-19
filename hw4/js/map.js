@@ -45,13 +45,70 @@ class Map {
      */
     drawMap(world) {
         //note that projection is global!
+        //world is a topojson file. you will have to convert this to geojson (hint: you should have learned this in class!)
+        let geoJson = topojson.feature(world, world.objects.countries);
+        
+        //console.log(geoJson.features);
+        //console.log(this.populationData);
+        //console.log(this.nameArray);
+        
+        let countryData = geoJson.features.map(country => {
+
+            let index = this.nameArray.indexOf(country.id);
+            let region = 'countries';
+
+            if (index > -1) {
+                //  console.log(this.populationData[index].geo, country.id);
+                region = this.populationData[index].region;
+                return new CountryData(country.type, country.id, country.properties, country.geometry, region);
+            } else {;
+                return new CountryData(country.type, country.id, country.properties, country.geometry, region);
+            }
+        });
+
+        //console.log(countryData);
 
         // ******* TODO: PART I *******
-
-        //world is a topojson file. you will have to convert this to geojson (hint: you should have learned this in class!)
-
         // Draw the background (country outlines; hint: use #map-chart)
         // Make sure to add a graticule (gridlines) and an outline to the map
+        let mapChart = d3.select("#map-chart");
+        mapChart.append('svg').attr('width',750).attr('height', 450);
+        let mapChartsvg = d3.select('svg')
+        let width = parseInt(mapChartsvg.attr('width'));
+        let height =  parseInt(mapChartsvg.attr('height'));
+
+        let projection = d3.geoWinkel3()
+            .translate([width/2, height/2])
+            .scale([140]);
+        
+        let path = d3.geoPath()
+            .projection(this.projection);
+        mapChartsvg
+            .selectAll('path')
+            .data(countryData)
+            .enter()
+            .append("path")
+            .attr('d', path)
+            //.attr('id', d => d.id)
+            .attr('class', d => 'countries boundary '+ d.region+" "+d.id.toLowerCase());
+
+        mapChartsvg
+            .selectAll('path')
+            .data(countryData)
+            .enter()
+
+        let graticule = d3.geoGraticule();
+        mapChartsvg
+            .append('path')
+            .datum(graticule)
+            .attr('class', 'graticule ')
+            .attr('d',path)
+            .attr('fill','none');
+        
+        mapChartsvg.append("path")
+            .datum(graticule.outline)
+            .attr('class', 'stroke')
+            .attr("d", path);  
 
         // Hint: assign an id to each country path to make it easier to select afterwards
         // we suggest you use the variable in the data element's id field to set the id
@@ -63,31 +120,6 @@ class Map {
         // We have provided a class structure for the data called CountryData that you should assign the paramters to in your mapping
 
         //TODO - Your code goes here - 
-
-
-        let geojson = topojson.feature(world, world.objects.countries);
-        // console.log(geojson.features);
-        // console.log(this.populationData);
-        //console.log(this.nameArray);
-        let countryData = geojson.features.map(country => {
-
-            let index = this.nameArray.indexOf(country.id);
-            let region = 'countries';
-
-            if (index > -1) {
-                //  console.log(this.populationData[index].geo, country.id);
-                region = this.populationData[index].region;
-                return new CountryData(country.type, country.id, country.properties, country.geometry, region);
-            } else {
-                console.log('not found');
-
-            }
-
-        });
-
-        console.log(countryData);
-
-
 
     }
 
