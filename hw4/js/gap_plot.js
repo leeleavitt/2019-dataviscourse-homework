@@ -248,19 +248,15 @@ class GapPlot {
         for(var i =0; i < countries.length; i++){
             data[i] = new PlotData
             data[i].country = countries[i]
+            data[i].id = this.data['child-mortality'][i].geo
             data[i].xVal = this.data[xIndicator].filter(d => d.country === countries[i])[0]
             data[i].yVal = this.data[yIndicator].filter(d=> d.country===countries[i])[0]
-            data[i].id = this.data['child-mortality'][i].geo
-            data[i].circleSize = this.data[circleSizeIndicator].filter(d => d.country==countries[i])
-            if(typeof(this.data.population[i]) === 'undefined'){
-                data[i].region = null
-            }else{
-                data[i].region = this.data.population[i].region
-            }
+            data[i].circleSize = this.data[circleSizeIndicator].filter(d => d.country===countries[i])[0]
+            if(this.data.population.filter(d=> d.country===countries[i]).length > 0){
+                data[i].region = this.data.population.filter(d=> d.country===countries[i])[0].region
+            }else{data[i].region = null}
         }
         console.log(data)
-        var newPlotData = new PlotData(null,  this.data[xIndicator], this.data[yIndicator], null, null, this.data[circleSizeIndicator])
-        var xValMaxes = d3.max(newPlotData.xVal, d => d["1800"])
 
         /*
         *** Setting the scales for your x, y, and circle data ***
@@ -268,61 +264,33 @@ class GapPlot {
         not just for the activeYear
         */
         
-        var firstMax = Math.max(...data.map(d => Math.max(d.xVal[activeYear])));
-        console.log(firstMax)
 
 
+        if(xIndicator==='population'){var newData = data.filter(d => d.xVal !== undefined)}
+        if(yIndicator==='population'){var newData= data.filter(d=> d.yVal !== undefined)}
+        if(circleSizeIndicator==='population'){var newData = data.filter(d=> d.circleSize !== undefined)}
 
-
-
-
-
-        let maxFinder = function(parameter){
-            let countryMax = []
-            for(var i = 0; i < newPlotData[parameter].length; i++){
-                let year = [];
-                for(var j=1800; j < 2021; j++){
-                    year.push( Math.max( newPlotData[parameter][i][j.toString()] ) );
-                }
-                countryMax.push(Math.max(...year));
-            }
-            return xValMax = Math.max(...countryMax)
-        }
-
-        let minFinder = function(parameter){
-            let countryMax = []
-            for(var i = 0; i < newPlotData[parameter].length; i++){
-                let year = [];
-                for(var j=1800; j < 2021; j++){
-                    year.push( Math.min( newPlotData[parameter][i][j.toString()] ) );
-                }
-                countryMax.push(Math.min(...year));
-            }
-            return xValMax = Math.min(...countryMax)
-        }
-        
-        var minSize = minFinder('circleSize')
-        var maxSize = maxFinder('circleSize')
+        console.log(newData)
+        var minSize = Math.min(...newData.map(d => Math.min(d.circleSize[activeYear])));
+        console.log(minSize)
+        var maxSize = Math.max(...newData.map(d => Math.max(d.circleSize[activeYear])));
         // let circleSizer = function(d) {
         //     let cScale = d3.scaleSqrt().range([3, 20]).domain([minSize, maxSize]);
-        //     return d.circleSize ? cScale(d.circleSize) : 3;
+        //     return d ? cScale(d) : 3;
         // };
-
         let circleSizer = d3
             .scaleSqrt()
             .range([3,20])
             .domain([minSize, maxSize]);
-
-        var xValMax = maxFinder('xVal')
-
+ 
+        var xValMax = Math.max(...newData.map(d => Math.max(d.xVal[activeYear])));
         let xScale = d3
             .scaleLinear()
             .domain([0, xValMax])
             .range([0,this.width])
             .nice();
 
-        var yValMax = maxFinder('yVal')
-
+        var yValMax = Math.max(...newData.map(d => Math.max(d.yVal[activeYear])));
         let yScale = d3
             .scaleLinear()
             .domain([0, yValMax])
@@ -333,15 +301,12 @@ class GapPlot {
             .select('#chart-view')
             .select('.wrapper-group')
             .selectAll('circle')
-            .data(newPlotData.xVal)
+            .data(newData);
         chartView.exit().remove()
-
         var chartViewEnter = chartView
             .enter()
             .append('circle')
-            .attr('class', d => d.region +" "+ d.geo)
 
-        console.log(newPlotData)
         // Define the div for the tooltip
         var div = d3.select(".wrapper-group")
             .append("div")	
@@ -351,11 +316,10 @@ class GapPlot {
         var that = this
         chartView = 
             chartViewEnter.merge(chartView)
-            .attr('cx', d => xScale( d[activeYear] ) )
-            .data(newPlotData.yVal)
-            .attr('cy', d => yScale( d[activeYear] ) )
-            .data(newPlotData.circleSize)
-            .attr('r', d => circleSizer( d[activeYear] ) )
+            .attr('cx', d => xScale( d.xVal[activeYear] ) )
+            .attr('cy', d => yScale( d.yVal[activeYear] ) )
+            .attr('r', d => circleSizer( d.circleSize[activeYear] ) )
+            .attr('class', d => d.region +" "+ d.id)
             .on('mouseover', function(d) {
                 var toolTip = d3.select('.tooltip');
                 toolTip.transition().duration(200).style('opacity',.9);
@@ -369,8 +333,7 @@ class GapPlot {
                     .duration(500)
                     .style('opacity',0); 
             })
-            .on('click', d => this.updateHighlightClick(d.geo) )
-            .exit().remove()
+            .on('click', d => this.updateHighlightClick(d.id) )
             ;
 
         //XAXIS
@@ -399,7 +362,7 @@ class GapPlot {
             .text(activeYear);
 
         this.drawDropDown()
-        this.drawLegend(minSize, maxSize)
+        //this.drawLegend(minSize, maxSize)
 
 
     }
@@ -597,23 +560,31 @@ class GapPlot {
      * @param activeCountry
      */
     updateHighlightClick(activeCountry) {
-        console.log(this.data.population)
-        var found = this.data.population.find(
-            d => d['geo'] === activeCountry
-        )
-        var notFound = this.data.population.filter(
-            d => d['geo'] !== activeCountry
-        )
+        d3.selectAll('.select-selected')
+            .classed('select-selected',false)
+        d3.selectAll('.selected-country')
+            .classed('selected-country',false)
+
+        var found = this.data.population.find(d => d['geo'] === activeCountry)
         console.log("selected country: "+activeCountry)
         console.log("region: "+found.region)
-        console.log(notFound)
         
+        d3.select('map-chart')
+            .classed('select-selected',false)
         //d3.selectAll("."+found.region)
           //  .classed("selected-country", true);
+        d3.select('.wrapper-group')
+            .selectAll('circle')
+            .classed('hidden', true);
         d3.selectAll("."+activeCountry)
+            .classed('hidden',false)
             .classed('selected-country', true)
             .classed('select-selected', true);
-        
+        d3.selectAll('.'+found.region)
+            .classed('hidden',false);
+
+        this.clearHighlight()
+
         /* ******* TODO: PART 3*******
         //You need to assign selected class to the target country and corresponding region
         // Hint: If you followed our suggestion of using classes to style
@@ -629,6 +600,7 @@ class GapPlot {
      * Clears any highlights
      */
     clearHighlight() {
+        
         // ******* TODO: PART 3*******
         // Clear the map of any colors/markers; You can do this with inline styling or by
         // defining a class style in styles.css

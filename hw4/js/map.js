@@ -66,7 +66,7 @@ class Map {
             }
         });
 
-        //console.log(countryData);
+        this.countryData = countryData;
 
         // ******* TODO: PART I *******
         // Draw the background (country outlines; hint: use #map-chart)
@@ -83,6 +83,8 @@ class Map {
         
         let path = d3.geoPath()
             .projection(this.projection);
+        
+        console.log(countryData)
         mapChartsvg
             .selectAll('path')
             .data(countryData)
@@ -90,8 +92,8 @@ class Map {
             .append("path")
             .attr('d', path)
             //.attr('id', d => d.id)
-            .attr('class', d => 'countries boundary '+ d.region+" "+d.id.toLowerCase());
-
+            .attr('class', d => 'countries boundary '+ d.region+" "+d.id.toLowerCase())
+            .on('click', d => this.updateHighlightClick(d.id));
         mapChartsvg
             .selectAll('path')
             .data(countryData)
@@ -128,7 +130,33 @@ class Map {
      * @param activeCountry the country ID of the country to be rendered as selected/highlighted
      */
     updateHighlightClick(activeCountry) {
-        // ******* TODO: PART 3*******
+
+        d3.selectAll('.select-selected')
+            .classed('select-selected',false)
+        d3.selectAll('.selected-country')
+            .classed('selected-country',false)
+        console.log(this.countryData)
+        var found = this.countryData.find(d => d.id === activeCountry.toUpperCase())
+        console.log("selected country: "+activeCountry)
+        console.log("region: "+found.region)
+        
+        d3.select('map-chart')
+            .classed('select-selected',false)
+        //d3.selectAll("."+found.region)
+        //  .classed("selected-country", true);
+        d3.select('.wrapper-group')
+            .selectAll('circle')
+            .classed('hidden', true);
+        d3.selectAll("."+activeCountry.toLowerCase())
+            .classed('hidden',false)
+            .classed('selected-country', true)
+            .classed('select-selected', true);
+        d3.selectAll('.'+found.region)
+            .classed('hidden',false);
+
+        this.clearHighlight()
+
+            // ******* TODO: PART 3*******
         // Assign selected class to the target country and corresponding region
         // Hint: If you followed our suggestion of using classes to style
         // the colors and markers for countries/regions, you can use
