@@ -47,7 +47,7 @@ path.hidden {
     width: 500px;
 }
 
-#country-detail .stats span {
+#country-detail .stats {
     font-weight: bold;
 }
 

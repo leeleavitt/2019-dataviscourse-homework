@@ -130,15 +130,14 @@ class Map {
      * @param activeCountry the country ID of the country to be rendered as selected/highlighted
      */
     updateHighlightClick(activeCountry) {
-
+        this.updateCountry(activeCountry.toLowerCase())
         d3.selectAll('.select-selected')
             .classed('select-selected',false)
         d3.selectAll('.selected-country')
             .classed('selected-country',false)
-        console.log(this.countryData)
         var found = this.countryData.find(d => d.id === activeCountry.toUpperCase())
-        console.log("selected country: "+activeCountry)
-        console.log("region: "+found.region)
+        //console.log("selected country: "+activeCountry)
+        //console.log("region: "+found.region)
         
         d3.select('map-chart')
             .classed('select-selected',false)
@@ -154,7 +153,7 @@ class Map {
         d3.selectAll('.'+found.region)
             .classed('hidden',false);
 
-        this.clearHighlight()
+        //this.clearHighlight()
 
             // ******* TODO: PART 3*******
         // Assign selected class to the target country and corresponding region
@@ -171,6 +170,11 @@ class Map {
      * Clears all highlights
      */
     clearHighlight() {
+        d3.selectAll('.select-selected')
+            .classed('select-selected',false)
+        d3.selectAll('.selected-country')
+            .classed('selected-country',false)
+
         // ******* TODO: PART 3*******
         // Clear the map of any colors/markers; You can do this with inline styling or by
         // defining a class style in styles.css

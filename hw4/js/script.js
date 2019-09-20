@@ -14,8 +14,7 @@ loadData().then(data => {
     function updateCountry(countryID) {
         that.activeCountry = countryID;
         //TODO - Your code goes here - 
-
-
+        infoBox.updateTextDescription(that.activeCountry, that.activeYear )
     }
 
     // ******* TODO: PART 3 *******
@@ -27,8 +26,10 @@ loadData().then(data => {
      *  @param year the new year we need to set to the other views
      */
     function updateYear(year) {
-
         //TODO - Your code goes here - 
+        that.activeYear = year;
+        gapPlot.updatePlot(that.activeYear, "fertility-rate", "gdp", "population")
+        infoBox.updateTextDescription(that.activeCountry, that.activeYear )
 
     }
     // Creates the view objects
@@ -38,22 +39,24 @@ loadData().then(data => {
 
 
     // Initialize the plots; pick reasonable default values
+    gapPlot.drawPlot()
+    console.log('hello')
+    gapPlot.drawDropDown("population", "gdp", "life-expectancy")
+    gapPlot.updatePlot(that.activeYear, "fertility-rate", "gdp", "population")
+    gapPlot.drawYearBar()
+    infoBox.drawUpdateText()
+    infoBox.updateTextDescription(that.activeCountry, that.activeYear )
 
     // here we load the map data
     d3.json('data/world.json').then(mapData => {
-
-        // ******* TODO: PART I *******
-
-        // You need to pass the world topo data to the drawMap() function as a parameter
-
         worldMap.drawMap(mapData);
-
     });
 
     // This clears a selection by listening for a click
     document.addEventListener("click", function(e) {
-        console.log(this)
         console.log('you clicked')
+        gapPlot.clearHighlight()
+        worldMap.clearHighlight()
         //TODO - Your code goes here - 
 		// call clear highight methods
     }, true);

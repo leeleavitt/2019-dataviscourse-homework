@@ -22,15 +22,81 @@ class InfoBox {
      * @param data the full data array
      */
     constructor(data) {
-
+        this.data = data;
     }
 
+
+
+    drawUpdateText(){
+        d3.select("#country-detail")
+            .append('div')
+            .attr('id','firstDiv')
+            .append('i')
+            .attr('class', 'fas fa-globe-americas')
+            .attr('id','littleGlobe')
+            .append('text')
+            .attr('id','labelText')
+
+    }
     /**
      * Renders the country description
      * @param activeCountry the IDs for the active country
      * @param activeYear the year to render the data for
      */
     updateTextDescription(activeCountry, activeYear) {
+        this.clearHighlight()
+        //this.drawUpdateText()
+
+            console.log(this.data)
+            console.log(activeCountry);
+            console.log(activeYear);
+
+        if(activeCountry !== null){
+
+            console.log('hi')
+
+            var indicators = ['child-mortality', 'fertility-rate', 'gdp', 'life-expectancy', 'population']
+            var totalInfoData = []
+            for(var i=0; i < indicators.length; i++){
+                totalInfoData[i] = new InfoBoxData;
+                totalInfoData[i].country = this.data[indicators[1]].find(d=>d.geo===activeCountry).country;
+                var regionLogic = this.data.population.filter(d=> d.geo === activeCountry)[0]
+                totalInfoData[i].region = (regionLogic === undefined) ? null : regionLogic.region ;
+                totalInfoData[i].indicator_name = indicators[i].toString()
+                totalInfoData[i].value = this.data[ indicators[i] ].find(d=> d.geo === activeCountry)[activeYear]
+            }
+
+            d3.select('#country-detail')
+                .append('div')
+                .classed('label', true)
+                .append('i')
+                .classed('fas fa-globe-americas', true)
+                .classed(totalInfoData[0].region, true)
+                
+            d3.select('#country-detail').select('div')
+                .classed('label', true)
+                .append('span')
+                .text(totalInfoData[0].country)
+            
+            var countryDetail = d3.select('#country-detail').selectAll('div')
+                .data(totalInfoData)
+                .enter()
+                .append('div')
+                //.classed('label', true)
+                //.exit().remove()
+
+            //countryDetail.exit().remove()
+            
+            //countryDetail = countryDetail.merge(countryDetailEnter)
+            
+            countryDetail
+                .text(d=> d.indicator_name+": ")
+                .append('span')
+                .classed('stats', true)
+                .text(d=>d.value)
+        }
+
+
         // ******* TODO: PART 4 *******
         // Update the text elements in the infoBox to reflect:
         // Selected country, region, population and stats associated with the country.
@@ -51,7 +117,7 @@ class InfoBox {
      * Removes or makes invisible the info box
      */
     clearHighlight() {
-
+        d3.select('#country-detail').selectAll('div').remove()
         //TODO - Your code goes here - 
     }
 

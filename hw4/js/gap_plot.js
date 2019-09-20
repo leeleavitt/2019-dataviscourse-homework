@@ -51,10 +51,10 @@ class GapPlot {
         this.height = 500 - this.margin.top - this.margin.bottom;
 
         //YOUR CODE HERE  
-        this.drawPlot()
-        this.drawDropDown("population", "gdp", "life-expectancy")
-        this.updatePlot(this.activeYear, "fertility-rate", "gdp", "population")
-        this.drawYearBar()
+        //this.drawPlot()
+        //this.drawDropDown("population", "gdp", "life-expectancy")
+        //this.updatePlot(this.activeYear, "fertility-rate", "gdp", "population")
+        //this.drawYearBar()
         
         
         // ******* TODO: PART 3 *******
@@ -226,10 +226,11 @@ class GapPlot {
      * @param circleSizeIndicator identifies the values to use for the circle size
      */
     updatePlot(activeYear, xIndicator, yIndicator, circleSizeIndicator) {
-        
+        this.activeYear = activeYear;
         this.xIndicator = xIndicator;
         this.yIndicator = yIndicator;
         this.circleSizeIndicator = circleSizeIndicator;
+        console.log(this)
         // ******* TODO: PART 2 *******
         /*
         You will be updating the scatterplot from the data. hint: use the #chart-view div
@@ -362,7 +363,7 @@ class GapPlot {
             .text(activeYear);
 
         this.drawDropDown()
-        //this.drawLegend(minSize, maxSize)
+        this.drawLegend(minSize, maxSize)
 
 
     }
@@ -489,7 +490,7 @@ class GapPlot {
         You will need to call the updateYear() function passed from script.js in your activeYear slider
         */
         let that = this;
-
+        console.log(that)
         //Slider to change the activeYear of the data
         let yearScale = d3.scaleLinear().domain([1800, 2020]).range([30, 730]);
 
@@ -511,12 +512,14 @@ class GapPlot {
         sliderText.attr('y', 25);
 
         yearSlider.on('input', function() { 
-            that.activeYear = this.value
-            sliderText
-                .text(that.activeYear)
-                .attr('x', yearScale(that.activeYear));
-            that.updatePlot(that.activeYear, that.xIndicator, that.yIndicator, that.circleSizeIndicator);
+            //that.activeYear = this.value
+            that.updateYear(this.value)
+            //sliderText
+                //.text(that.activeYear)
+                //.attr('x', yearScale(that.activeYear));
+            //that.updatePlot(that.activeYear, that.xIndicator, that.yIndicator, that.circleSizeIndicator);
         });
+        
     }
 
     /**
@@ -560,6 +563,7 @@ class GapPlot {
      * @param activeCountry
      */
     updateHighlightClick(activeCountry) {
+        this.updateCountry(activeCountry)
         d3.selectAll('.select-selected')
             .classed('select-selected',false)
         d3.selectAll('.selected-country')
@@ -583,7 +587,7 @@ class GapPlot {
         d3.selectAll('.'+found.region)
             .classed('hidden',false);
 
-        this.clearHighlight()
+        //this.clearHighlight()
 
         /* ******* TODO: PART 3*******
         //You need to assign selected class to the target country and corresponding region
@@ -600,6 +604,14 @@ class GapPlot {
      * Clears any highlights
      */
     clearHighlight() {
+        d3.selectAll('.select-selected')
+            .classed('select-selected',false)
+        d3.selectAll('.selected-country')
+            .classed('selected-country',false)
+        d3.selectAll('.hidden')
+            .classed('hidden', false)
+
+
         
         // ******* TODO: PART 3*******
         // Clear the map of any colors/markers; You can do this with inline styling or by
