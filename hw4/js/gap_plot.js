@@ -257,19 +257,23 @@ class GapPlot {
                 data[i].region = this.data.population.filter(d=> d.country===countries[i])[0].region
             }else{data[i].region = null}
         }
-        console.log(data)
 
         /*
         *** Setting the scales for your x, y, and circle data ***
         For x and y data, you should get the overall max of the whole data set for that data category,
         not just for the activeYear
         */
-        
 
-
-        if(xIndicator==='population'){var newData = data.filter(d => d.xVal !== undefined)}
-        if(yIndicator==='population'){var newData= data.filter(d=> d.yVal !== undefined)}
-        if(circleSizeIndicator==='population'){var newData = data.filter(d=> d.circleSize !== undefined)}
+        if(circleSizeIndicator==='population'){
+            var newData = data.filter(d=> d.circleSize !== undefined)
+            console.log(newData)
+        }else if(yIndicator==='population'){
+            var newData = data.filter(d=> d.yVal !== undefined)
+            console.log(newData)
+        }else if(xIndicator==='population'){
+            var newData = data.filter(d=> d.xVal !== undefined)
+            console.log(newData)
+        }
 
         console.log(newData)
         var minSize = Math.min(...newData.map(d => Math.min(d.circleSize[activeYear])));
