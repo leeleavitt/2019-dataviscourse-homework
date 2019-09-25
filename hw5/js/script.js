@@ -41,6 +41,28 @@
 d3.csv("data/fifa-matches-2018.csv").then( matchesCSV => {
     console.log(matchesCSV)
     
+
+    function rankFinder(dat){
+        if(dat==='Group'){
+            return 0
+        }else if(dat==='Round of Sixteen'){
+            return 1
+        }else if(dat==='Quarter Finals'){
+            return 2
+        }else if(dat==='Semi Finals'){
+            return 3
+        }else if(dat==='Fourth Place'){
+            return 4
+        }else if(dat==='Third Place'){
+            return 5
+        }else if(dat==='Runner-Up'){
+            return 6
+        }else if(dat=='Winner'){
+            return 7
+        }
+    }
+
+
     teamData = d3.nest()
         .key(d=> {
             return d.Team; 
@@ -55,33 +77,35 @@ d3.csv("data/fifa-matches-2018.csv").then( matchesCSV => {
             type: 'aggregate',
             Result: {
                 label: leaves[leaves.length-1].Result,
-                ranking: leaves[leaves.length-1].Result==="Quarter Finals" ? 2:''
+                ranking: rankFinder(leaves[leaves.length-1].Result)
             },
-            games: d3.nest()
-                .key(o => {return o.Opponent;
-                })
-                .rollup(function(d){ return{
+            leaves:leaves,     
+            games : leaves.map(function(d,i){
+                var rObj = {};
+                rObj['key'] = d.Opponent;
+                rObj['value'] = {
                     'Delta Goals':'',
-                    'Goals Conceded': d[0]['Goals Conceded'],
-                    'Goals Made': d[0]['Goals Made'],
-                    Losses: d[0].Losses,
-                    Opponent: d[0].Opponent,
+                    'Goals Conceded': d['Goals Conceded'],
+                    'Goals Made': d['Goals Made'],
+                    Losses: d.Losses,
+                    Opponent: d.Opponent,
                     Wins:'',
                     type:'game',
                     Result: {
-                        label:d[0].Result,
-                        ranking: d[0].length
+                        label:d.Result,
+                        ranking: rankFinder(d.Result)
                     }
                 };
-                })
-                .entries(leaves)
-                
-            
+                return(rObj)
+            })
+                        
         };
         })
         .entries(matchesCSV);
     
+        console.log(typeof teamData)
         console.log(teamData)
+
 
         // .rollup( leaves =>{
         //     return d3.sum(leaves, function(l){return l.Wins});
