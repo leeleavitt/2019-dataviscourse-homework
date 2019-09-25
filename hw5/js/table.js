@@ -4,7 +4,8 @@ class Table {
      * Creates a Table Object
      */
     constructor(teamData, treeObject) {
-
+        console.log(teamData)
+        console.log(treeObject)
         // Maintain reference to the tree object
         this.tree = null;
 
