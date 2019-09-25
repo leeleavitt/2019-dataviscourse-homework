@@ -46,13 +46,37 @@ d3.csv("data/fifa-matches-2018.csv").then( matchesCSV => {
             return d.Team; 
         })
         .rollup(function(leaves) { return {
-            "Goals Made": d3.sum(leaves, function(l){return l['Goals Made']}),
-            'Goals Conceded': d3.sum(leaves, function(l){return l['Goals Conceded']}),
             'Delta Goals': d3.sum(leaves, function(l){return l['Delta Goals']}),
+            'Goals Conceded': d3.sum(leaves, function(l){return l['Goals Conceded']}),
+            "Goals Made": d3.sum(leaves, function(l){return l['Goals Made']}),
+            Losses: d3.sum(leaves, function(l){return l.Losses}),
             Wins: d3.sum(leaves, function(l){return l.Wins}),
-            Losses: d3.sum(leaves, function(l){return l.Losses})
-            //"Goals Conceded":
-            //'Delta Goals'
+            TotalGames: leaves.length,
+            type: 'aggregate',
+            Result: {
+                label: leaves[leaves.length-1].Result,
+                ranking: leaves[leaves.length-1].Result==="Quarter Finals" ? 2:''
+            },
+            games: d3.nest()
+                .key(o => {return o.Opponent;
+                })
+                .rollup(function(d){ return{
+                    'Delta Goals':'',
+                    'Goals Conceded': d[0]['Goals Conceded'],
+                    'Goals Made': d[0]['Goals Made'],
+                    Losses: d[0].Losses,
+                    Opponent: d[0].Opponent,
+                    Wins:'',
+                    type:'game',
+                    Result: {
+                        label:d[0].Result,
+                        ranking: d[0].length
+                    }
+                };
+                })
+                .entries(leaves)
+                
+            
         };
         })
         .entries(matchesCSV);
