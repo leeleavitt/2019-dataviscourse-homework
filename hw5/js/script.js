@@ -38,10 +38,7 @@
  *
  */
 
-d3.csv("data/fifa-matches-2018.csv").then( matchesCSV => {
-    console.log(matchesCSV)
-    
-
+d3.csv("data/fifa-matches-2018.csv").then( matchesCSV => {   
     function rankFinder(dat){
         if(dat==='Group'){
             return 0
@@ -128,9 +125,7 @@ d3.csv("data/fifa-matches-2018.csv").then( matchesCSV => {
                     leaves.map(function(d){
                         ranks.push(rankFinder(d.Result)); 
                     })
-                    console.log(ranks)
                     let ranksMaxVal = ranks.indexOf(Math.max(...ranks));
-                    console.log(ranksMaxVal);
                     return(ranksMaxVal);
                     })()].Result)
             },
@@ -140,24 +135,26 @@ d3.csv("data/fifa-matches-2018.csv").then( matchesCSV => {
         })
         .entries(matchesCSV);
     
-        console.log(teamData)
-
-
-        // .rollup( leaves =>{
-        //     return d3.sum(leaves, function(l){return l.Wins});
-        // })
-        //.entries(allGames);
     /**
      * Loads in the tree information from fifa-tree-2018.csv and calls createTree(csvData) to render the tree.
      *
      */
-    console.log(matchesCSV)
-   d3.csv("data/fifa-tree-2018.csv").then( treeCSV => {
+    d3.csv("data/fifa-tree-2018.csv").then( treeCSV => {
+        //Create a unique "id" field for each game
+        treeCSV.forEach( (d, i) => {
+            d.id = d.Team + d.Opponent + i;
+        });
 
-    // ******* TODO: PART I *******
+        //Create Tree Object
+        let tree = new Tree();
+        tree.createTree(treeCSV);
+        
+        //Create Table Object and pass in reference to tree object (for hover linking)
+        let table = new Table(teamData,tree);
 
-
-      });
+        table.createTable();
+        table.updateTable();
+    });
 
 });
 

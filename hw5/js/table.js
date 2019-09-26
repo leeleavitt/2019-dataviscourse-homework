@@ -5,16 +5,15 @@ class Table {
      */
     constructor(teamData, treeObject) {
         console.log(teamData)
-        console.log(treeObject)
         // Maintain reference to the tree object
-        this.tree = null;
+        this.tree = treeObject;
 
         /**List of all elements that will populate the table.*/
         // Initially, the tableElements will be identical to the teamData
-        this.tableElements = null;
+        this.tableElements = teamData;
 
         ///** Store all match data for the 2018 Fifa cup */
-        this.teamData = null;
+        this.teamData = teamData;
 
         this.tableHeaders = ["Delta Goals", "Result", "Wins", "Losses", "TotalGames"];
 
@@ -34,16 +33,27 @@ class Table {
         this.goalsConcededHeader = 'Goals Conceded';
 
         /** Setup the scales*/
-        this.goalScale = null;
+        var goalScaleMax = Math.max(...this.teamData.map(d=>d.value['Goals Made']));
+        this.goalScale = d3
+            .scaleLinear()
+            .domain([0,goalScaleMax])
+            .range([this.cell.buffer,this.cell.width+(this.cell.buffer)*2]);
 
 
         /** Used for games/wins/losses*/
-        this.gameScale = null;
+        var gameScaleMax = Math.max(...this.teamData.map(d=>d['TotalGames']))
+        this.gameScale = d3
+            .scaleLinear()
+            .domain([0,gameScaleMax])
+            .range([0, this.cell.width]);
 
         /**Color scales*/
         /**For aggregate columns*/
         /** Use colors '#feebe2' and '#690000' for the range*/
-        this.aggregateColorScale = null;
+        this.aggregateColorScale = d3
+            .scaleLinear()
+            .domain([0,gameScaleMax])
+            .range(['#feebe2','#690000']);
 
 
         /**For goal Column*/
@@ -62,11 +72,27 @@ class Table {
         // ******* TODO: PART II *******
 
         //Update Scale Domains
-        
+        var goalXAxis = d3.axisTop(this.goalScale)
+        goalXAxis.scale(this.goalScale)
+    
         // Create the axes
-        
-        //add GoalAxis to header of col 1.
+        d3.select('#goalHeader')
+            .append('svg')
+            .attr('width', this.cell.width+(this.cell.buffer*3))
+            .attr('height', this.cell.height + this.cell.buffer)
+            //.attr('transform', 'translate(0,'+(this.cell.height - this.cell.buffer)+')')
+            .attr('id','goalHeaderAxis');
+        d3.select('#goalHeaderAxis')
+            .append('g')
+            //REMEBER TO TRANFORM THE GROUPING ELEMENT NOT THE SVG
+            .attr('transform','translate(0,'+this.cell.height+')')
+            .attr('id', 'goalAxis')
+            .call(goalXAxis)
 
+        //add GoalAxis to header of col 1.
+        d3.select('#goalAxis')
+            .call(goalXAxis);
+            
         // ******* TODO: PART V *******
 
         // Set sorting callback for clicking on headers
