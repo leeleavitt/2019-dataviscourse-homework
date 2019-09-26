@@ -62,11 +62,13 @@ d3.csv("data/fifa-matches-2018.csv").then( matchesCSV => {
         }
     }
 
-
+    //INVOKE NESTING!
     teamData = d3.nest()
+        //NEST BY TEAM
         .key(d=> {
             return d.Team; 
         })
+        //NOW USE THIS HANDY FUNCITON TO ROLLUP EACH LEAVE THAT IS CREATED
         .rollup(function(leaves) { return {
             'Delta Goals': d3.sum(leaves, function(l){return l['Delta Goals']}),
             'Goals Conceded': d3.sum(leaves, function(l){return l['Goals Conceded']}),
@@ -75,14 +77,15 @@ d3.csv("data/fifa-matches-2018.csv").then( matchesCSV => {
             Wins: d3.sum(leaves, function(l){return l.Wins}),
             TotalGames: leaves.length,
             type: 'aggregate',
-            Result: {
-                label: leaves[leaves.length-1].Result,
-                ranking: rankFinder(leaves[leaves.length-1].Result)
-            },
-            leaves:leaves,     
-            games : leaves.map(function(d,i){
+            //THIS IS THE WAY TO CREATE GAMES USING A MAP FUNCTION
+            //OFF OF LEAVES
+            games : leaves.map(function(d){
+                //ONCE IN MAP, THIS WILL PERFORM THESE THINGS LIKE A FOR LOOP
+                //INITIALIZE A NEW OBJECT
                 var rObj = {};
+                //NOW INITIALIZE THE KEY
                 rObj['key'] = d.Opponent;
+                //NOW INITIALZE THE VALUE, WHICH IS NOW A NEW NESTED OBJECT
                 rObj['value'] = {
                     'Delta Goals':'',
                     'Goals Conceded': d['Goals Conceded'],
@@ -91,19 +94,52 @@ d3.csv("data/fifa-matches-2018.csv").then( matchesCSV => {
                     Opponent: d.Opponent,
                     Wins:'',
                     type:'game',
+                    //THIS IS THE EASY WAY TO INVOKE THE RESULT
                     Result: {
                         label:d.Result,
                         ranking: rankFinder(d.Result)
                     }
                 };
+                //DONT FORGET TO RETURN THIS NEWLY CREATED OBJECT
+                //AS PREVIOUSLY STATED THIS WILL BE A FOR LOOP
                 return(rObj)
-            })
+            }),
+            //NOW TO THE HARD PART, THIS IS HOW WE INVOKE THE RESULTS
+            Result: {
+                label: leaves[
+                        //HERE I AM USING THE STRATEGY OF AN IIF (IMMEDIATELY INVOKEABLE FUNCTION)
+                        (function(){
+                            //I INITIALIZE RANKS
+                            var ranks=[];
+                            //NOW FOR EACH LEAVES.RESULT, RANKFIND IT AND ADD IT TO THE RANKS
+                            leaves.map(function(d){
+                                ranks.push(rankFinder(d.Result)); 
+                            })
+                            //NOW USING THIS HANDY FUNCTION (INDEXOF) I WILL FIND THE INDEX
+                            //OF THE MAXIMUM VALUE
+                            let ranksMaxVal = ranks.indexOf(Math.max(...ranks));
+                            //RETURN THAT
+                            return(ranksMaxVal);
+                        //THIS IS ESSENTIAL FOR THE IIF
+                        })()
+                    ].Result,
+                ranking: rankFinder(leaves[(function(){
+                    var ranks=[];
+                    leaves.map(function(d){
+                        ranks.push(rankFinder(d.Result)); 
+                    })
+                    console.log(ranks)
+                    let ranksMaxVal = ranks.indexOf(Math.max(...ranks));
+                    console.log(ranksMaxVal);
+                    return(ranksMaxVal);
+                    })()].Result)
+            },
+
                         
         };
         })
         .entries(matchesCSV);
     
-        console.log(typeof teamData)
         console.log(teamData)
 
 
