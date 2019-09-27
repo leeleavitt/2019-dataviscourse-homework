@@ -84,7 +84,7 @@ d3.csv("data/fifa-matches-2018.csv").then( matchesCSV => {
                 rObj['key'] = d.Opponent;
                 //NOW INITIALZE THE VALUE, WHICH IS NOW A NEW NESTED OBJECT
                 rObj['value'] = {
-                    'Delta Goals':'',
+                    'Delta Goals':d['Delta Goals'],
                     'Goals Conceded': d['Goals Conceded'],
                     'Goals Made': d['Goals Made'],
                     Losses: '',

@@ -15,7 +15,7 @@ class Table {
         ///** Store all match data for the 2018 Fifa cup */
         this.teamData = teamData;
 
-        this.tableHeaders = ["Delta Goals", "Result", "Wins", "Losses", "TotalGames"];
+        this.tableHeaders = ['Team', "Delta Goals", "Result", "Wins", "Losses", "TotalGames"];
 
         /** letiables to be used when sizing the svgs in the table cells.*/
         this.cell = {
@@ -33,7 +33,7 @@ class Table {
         this.goalsConcededHeader = 'Goals Conceded';
 
         /** Setup the scales*/
-        var goalScaleMax = Math.max(...this.teamData.map(d=>d.value['Goals Made']));
+        var goalScaleMax = Math.max(...this.tableElements.map(d=>d.value['Goals Made']));
         this.goalScale = d3
             .scaleLinear()
             .domain([0,goalScaleMax])
@@ -41,7 +41,7 @@ class Table {
 
 
         /** Used for games/wins/losses*/
-        var gameScaleMax = Math.max(...this.teamData.map(d=>d.value['TotalGames']))
+        var gameScaleMax = Math.max(...this.tableElements.map(d=>d.value['TotalGames']))
         this.gameScale = d3
             .scaleLinear()
             .domain([0,gameScaleMax])
@@ -58,8 +58,8 @@ class Table {
 
         /**For goal Column*/
         /** Use colors '#cb181d' and '#034e7b' for the range */
-        var goalDeltaMin = Math.min(...this.teamData.map(d=>d.value['Delta Goals']))
-        var goalDeltaMax = Math.max(...this.teamData.map(d=>d.value['Delta Goals']))
+        var goalDeltaMin = Math.min(...this.tableElements.map(d=>d.value['Delta Goals']))
+        var goalDeltaMax = Math.max(...this.tableElements.map(d=>d.value['Delta Goals']))
         this.goalColorScale = d3
             .scaleThreshold()
             .domain([-1,0,1])
@@ -101,8 +101,16 @@ class Table {
         // ******* TODO: PART V *******
 
         // Set sorting callback for clicking on headers
+        var header = d3
+            .select('#matchTable')
+            .select('thead')
+            .select('tr')
+            .selectAll(['td', 'th']);
+        header.on('click', (d,i)=>{
+            console.log(this.tableHeaders[i])
+            
         
-
+            })
         //Set sorting callback for clicking on Team header
         //Clicking on headers should also trigger collapseList() and updateTable().
 
@@ -113,33 +121,27 @@ class Table {
      * Updates the table contents with a row for each element in the global variable tableElements.
      */
     updateTable() {
+        console.log('FUCK')
         // ******* TODO: PART III *******
         //Create table rows
         //FIND WHERE I AM AND APPEND THE DATA
         var tableRows = d3.select('#matchTable')
             .select('tbody')
-            .selectAll('tr')
+            .selectAll('tr').html(null)
             .data(this.tableElements)
-            .append('tr');
+            .join('tr');
         //ENTER AND APPEND TABLE ROWS
-        var tableRowsEnter = tableRows.enter()
-            .append('tr')
-            .on('click',(d,i)=>this.updateList(i))
-        //REMOVE ITEMS TO DISAPPEAR
-
-        //Append th elements for the Team Names
-        //MERGE THE ENTER AND THE ORIGINAL NOW THAT EXIT IS GONE
-        tableRows = tableRowsEnter.merge(tableRows)
-
-        //NOW LETS ADD SOME FUN STUFF
         tableRows
             .append('th')
             .text(d=>d.key)
-            .classed('aggregate',true)
+            .on('click',(d,i)=>this.updateList(i))
+            .attr('class',d=>d.value.type);
+
         //Append td elements for the remaining columns. 
         //Data for each cell is of the type: {'type':<'game' or 'aggregate'>, 'vis' :<'bar', 'goals', or 'text'>, 'value':<[array of 1 or two elements]>}
 
-        var tableCollumns = tableRows.selectAll('td')
+        var tableCollumns = tableRows
+            .selectAll('td')
             .data(d=>{
                 var Goals={
                     'type':d.value.type,
@@ -178,14 +180,8 @@ class Table {
                 return [Goals, Round, Wins, Losses, TotalGames]
 
             })
-
-
-        var tableCollumnsEnter = tableCollumns.enter().append('td')
-        //tableCollumns.exit().remove()
-
-        tableCollumns = tableCollumnsEnter.merge(tableCollumns)
-        console.log(tableCollumns)
-
+            .join('td');
+        
         tableCollumns
             .filter(d=> d.vis == 'bars'&& d.type=='aggregate')
             .append('svg')
@@ -223,7 +219,7 @@ class Table {
 
         //Create diagrams in the goals column
         tableCollumns
-            .filter(d => d.vis=='goals')
+            .filter(d => d.vis=='goals' && d.type=='aggregate')
             .append('svg')
             .attr('width', 150)
             .attr('height', this.cell.height)
@@ -236,7 +232,7 @@ class Table {
             .attr('fill',d=>this.goalColorScale(d.value['Delta Goals']))
         
         tableCollumns
-            .filter(d => d.vis=='goals')
+            .filter(d => d.vis=='goals' && d.type=='aggregate')
             .select('svg')
             .append('circle')
             .classed('goalCircle', true)
@@ -245,7 +241,7 @@ class Table {
             .attr('fill',d=>d.value['Delta Goals']===0?'lightgray':'red')
 
         tableCollumns
-            .filter(d => d.vis=='goals')
+            .filter(d => d.vis=='goals' && d.type=='aggregate')
             .select('svg')
             .append('circle')
             .classed('goalCircle', true)
@@ -254,7 +250,40 @@ class Table {
             .attr('fill',d=>d.value['Delta Goals']===0?'lightgray':'blue')
 
         //Set the color of all games that tied to light gray
- 
+    tableCollumns
+        .filter(d => d.vis=='goals' && d.type=='game')
+        .append('svg')
+        .attr('width', 150)
+        .attr('height', this.cell.height)
+        .append('rect')
+        .attr('x', d => this.goalScale(Math.min(d.value['Goals Conceded'],d.value['Goals Made']))+this.cell.buffer)
+        .attr('y',this.cell.buffer-7)
+        .attr('width', d=>this.goalScale(Math.abs(d.value['Delta Goals'])))
+        .attr('height',5)
+        .classed('goalBar', true)
+        .attr('fill',d=>this.goalColorScale(d.value['Delta Goals']))
+    
+    tableCollumns
+        .filter(d => d.vis=='goals' && d.type=='game')
+        .select('svg')
+        .append('circle')
+        .classed('goalCircle', true)
+        .attr('cx',d=>this.goalScale(d.value['Goals Conceded'])+this.cell.buffer)
+        .attr('cy', this.cell.buffer-5)
+        //.attr('stroke-width', 1)
+        .attr('stroke',d=>d.value['Delta Goals']==='0'?'lightgray':'red')
+        .attr('fill','white')
+
+    tableCollumns
+        .filter(d => d.vis=='goals' && d.type=='game')
+        .select('svg')
+        .append('circle')
+        .classed('goalCircle', true)
+        .attr('cx',d=>this.goalScale(d.value['Goals Made'])+this.cell.buffer)
+        .attr('cy', this.cell.buffer-5)
+        //.attr('stroke-width', 1)
+        .attr('stroke',d=>d.value['Delta Goals']==='0'?'lightgray':'blue')
+        .attr('fill', 'white')
     };
 
     /**
@@ -265,11 +294,12 @@ class Table {
         console.log(i)
         // ******* TODO: PART IV *******
         console.log(this.tableElements)
+        //select the games to append
         this.tableElements[i].value.games.map(
-            (d,i)=>this.tableElements.splice((i+1),0,d))
+            (d)=>this.tableElements.splice((i+1),0,d))
         console.log(this.tableElements.filter(d=>d.value.type=='game').map(d=>d.key='x'+d.key))
        //Only update list for aggregate clicks, not game clicks
-        console.log(this.teamData)
+        console.log(this.tableElements)
         this.updateTable()
         
     }
