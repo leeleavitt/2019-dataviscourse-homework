@@ -37,11 +37,11 @@ class Table {
         this.goalScale = d3
             .scaleLinear()
             .domain([0,goalScaleMax])
-            .range([this.cell.buffer,this.cell.width+(this.cell.buffer)*2]);
+            .range([0,150-(this.cell.buffer)]);
 
 
         /** Used for games/wins/losses*/
-        var gameScaleMax = Math.max(...this.teamData.map(d=>d['TotalGames']))
+        var gameScaleMax = Math.max(...this.teamData.map(d=>d.value['TotalGames']))
         this.gameScale = d3
             .scaleLinear()
             .domain([0,gameScaleMax])
@@ -58,7 +58,12 @@ class Table {
 
         /**For goal Column*/
         /** Use colors '#cb181d' and '#034e7b' for the range */
-        this.goalColorScale = null;
+        var goalDeltaMin = Math.min(...this.teamData.map(d=>d.value['Delta Goals']))
+        var goalDeltaMax = Math.max(...this.teamData.map(d=>d.value['Delta Goals']))
+        this.goalColorScale = d3
+            .scaleThreshold()
+            .domain([-1,0,1])
+            .range(['#cb181d','gray','#034e7b']);
     }
 
 
@@ -78,7 +83,7 @@ class Table {
         // Create the axes
         d3.select('#goalHeader')
             .append('svg')
-            .attr('width', this.cell.width+(this.cell.buffer*3))
+            .attr('width', 150)
             .attr('height', this.cell.height + this.cell.buffer)
             //.attr('transform', 'translate(0,'+(this.cell.height - this.cell.buffer)+')')
             .attr('id','goalHeaderAxis');
@@ -110,20 +115,145 @@ class Table {
     updateTable() {
         // ******* TODO: PART III *******
         //Create table rows
+        //FIND WHERE I AM AND APPEND THE DATA
+        var tableRows = d3.select('#matchTable')
+            .select('tbody')
+            .selectAll('tr')
+            .data(this.tableElements);
+        //ENTER AND APPEND TABLE ROWS
+        var tableRowsEnter = tableRows.enter().append('tr')
+        //REMOVE ITEMS TO DISAPPEAR
+        tableRows.exit().remove()
 
         //Append th elements for the Team Names
-
+        //MERGE THE ENTER AND THE ORIGINAL NOW THAT EXIT IS GONE
+        tableRows = tableRowsEnter.merge(tableRows)
+        //NOW LETS ADD SOME FUN STUFF
+        tableRows
+            .append('th')
+            .text(d=>d.key)
+            .classed('aggregate',true)
         //Append td elements for the remaining columns. 
         //Data for each cell is of the type: {'type':<'game' or 'aggregate'>, 'vis' :<'bar', 'goals', or 'text'>, 'value':<[array of 1 or two elements]>}
+
+        var tableCollumns = tableRows.selectAll('td')
+            .data(d=>{
+                var Goals={
+                    'type':d.value.type,
+                    'vis':'goals',
+                    'value':{
+                        'Delta Goals':d.value['Delta Goals'],
+                        'Goals Conceded':d.value['Goals Conceded'],
+                        'Goals Made':d.value['Goals Made']
+                    }
+                }
+                
+                var Round= {
+                    'type':d.value.type,
+                    'vis':'text',
+                    'value': d.value.Result.label
+                }
+                
+                var Wins = {
+                    'type':d.value.type,
+                    'vis':'bars',
+                    'value':d.value.Wins
+                }
+
+                var Losses={
+                    'type':d.value.type,
+                    'vis':'bars',
+                    'value':d.value.Losses
+                }
+                
+                var TotalGames={
+                    'type':d.value.type,
+                    'vis':'bars',
+                    "value":d.value.TotalGames
+                }
+
+                return [Goals, Round, Wins, Losses, TotalGames]
+
+            })
+
+        var tableCollumnsEnter = tableCollumns.enter().append('td')
+        tableCollumns.exit().remove()
+
+        tableCollumns = tableCollumnsEnter.merge(tableCollumns)
+
+        tableCollumns
+            .filter((d)=>{
+                return d.vis == 'bars'
+            })
+            .append('svg')
+            .attr('width',this.cell.width)
+            .attr('height', this.cell.height)
+            .append('rect')
+            .attr('width', d => this.gameScale(d.value))
+            .attr('height', this.bar.height)
+            .attr('fill',d=>this.aggregateColorScale(d.value));
+            
+        tableCollumns
+            .filter((d)=>{
+                return d.vis == 'bars'
+            })
+            .selectAll('svg')
+            .append('text')
+            .attr('x',d=>this.gameScale(d.value)-10 )
+            .attr('y',this.cell.buffer)
+            .text(d=>d.value)
+            .classed('label',true);
+        
+        tableCollumns
+            .filter(d=> d.vis=='text')
+            .append('svg')
+            .attr('width',140)
+            .attr('height', this.cell.height)
+            .append('text')
+            .attr('font-weight','bold')
+            .attr('x',this.cell.buffer)
+            .attr('y',this.cell.buffer)
+            .text(d=>d.value)
+            .attr()
         
         //Add scores as title property to appear on hover
 
         //Populate cells (do one type of cell at a time )
 
         //Create diagrams in the goals column
+        tableCollumns
+            .filter(d => d.vis=='goals')
+            .append('svg')
+            .attr('width', 150)
+            .attr('height', this.cell.height)
+            .append('rect')
+            .attr('x', d => this.goalScale(Math.min(d.value['Goals Conceded'],d.value['Goals Made'])))
+            .attr('y',this.cell.buffer-5)
+            .attr('width', d=>this.goalScale(Math.abs(d.value['Delta Goals'])))
+            .attr('height', 15)
+            .classed('goalBar', true)
+            .attr('fill',d=>this.goalColorScale(d.value['Delta Goals']))
+        
+        tableCollumns
+            .filter(d => d.vis=='goals')
+            .select('svg')
+            .append('circle')
+            .classed('goalCircle', true)
+            .attr('cx',d=>this.goalScale(d.value['Goals Conceded']))
+            .attr('cy', this.cell.buffer)
+            .attr('fill',d=>d.value['Delta Goals']===0?'lightgray':'red')
+
+        tableCollumns
+            .filter(d => d.vis=='goals')
+            .select('svg')
+            .append('circle')
+            .classed('goalCircle', true)
+            .attr('cx',d=>this.goalScale(d.value['Goals Made']))
+            .attr('cy', this.cell.buffer)
+            .attr('fill',d=>d.value['Delta Goals']===0?'lightgray':'blue')
 
         //Set the color of all games that tied to light gray
-
+ 
     };
 
     /**
