@@ -87,7 +87,7 @@ d3.csv("data/fifa-matches-2018.csv").then( matchesCSV => {
                     'Delta Goals':'',
                     'Goals Conceded': d['Goals Conceded'],
                     'Goals Made': d['Goals Made'],
-                    Losses: d.Losses,
+                    Losses: '',
                     Opponent: d.Opponent,
                     Wins:'',
                     type:'game',

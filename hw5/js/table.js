@@ -119,15 +119,18 @@ class Table {
         var tableRows = d3.select('#matchTable')
             .select('tbody')
             .selectAll('tr')
-            .data(this.tableElements);
+            .data(this.tableElements)
+            .append('tr');
         //ENTER AND APPEND TABLE ROWS
-        var tableRowsEnter = tableRows.enter().append('tr')
+        var tableRowsEnter = tableRows.enter()
+            .append('tr')
+            .on('click',(d,i)=>this.updateList(i))
         //REMOVE ITEMS TO DISAPPEAR
-        tableRows.exit().remove()
 
         //Append th elements for the Team Names
         //MERGE THE ENTER AND THE ORIGINAL NOW THAT EXIT IS GONE
         tableRows = tableRowsEnter.merge(tableRows)
+
         //NOW LETS ADD SOME FUN STUFF
         tableRows
             .append('th')
@@ -176,15 +179,15 @@ class Table {
 
             })
 
+
         var tableCollumnsEnter = tableCollumns.enter().append('td')
-        tableCollumns.exit().remove()
+        //tableCollumns.exit().remove()
 
         tableCollumns = tableCollumnsEnter.merge(tableCollumns)
+        console.log(tableCollumns)
 
         tableCollumns
-            .filter((d)=>{
-                return d.vis == 'bars'
-            })
+            .filter(d=> d.vis == 'bars'&& d.type=='aggregate')
             .append('svg')
             .attr('width',this.cell.width)
             .attr('height', this.cell.height)
@@ -194,9 +197,7 @@ class Table {
             .attr('fill',d=>this.aggregateColorScale(d.value));
             
         tableCollumns
-            .filter((d)=>{
-                return d.vis == 'bars'
-            })
+            .filter(d=> d.vis == 'bars'&& d.type=='aggregate')
             .selectAll('svg')
             .append('text')
             .attr('x',d=>this.gameScale(d.value)-10 )
@@ -214,7 +215,7 @@ class Table {
             .attr('x',this.cell.buffer)
             .attr('y',this.cell.buffer)
             .text(d=>d.value)
-            .attr()
+            //.attr()
         
         //Add scores as title property to appear on hover
 
@@ -261,9 +262,15 @@ class Table {
      *
      */
     updateList(i) {
+        console.log(i)
         // ******* TODO: PART IV *******
-       
-        //Only update list for aggregate clicks, not game clicks
+        console.log(this.tableElements)
+        this.tableElements[i].value.games.map(
+            (d,i)=>this.tableElements.splice((i+1),0,d))
+        console.log(this.tableElements.filter(d=>d.value.type=='game').map(d=>d.key='x'+d.key))
+       //Only update list for aggregate clicks, not game clicks
+        console.log(this.teamData)
+        this.updateTable()
         
     }
 
