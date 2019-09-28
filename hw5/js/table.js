@@ -15,7 +15,7 @@ class Table {
         ///** Store all match data for the 2018 Fifa cup */
         this.teamData = teamData;
 
-        this.tableHeaders = ['Team', "Delta Goals", "Result", "Wins", "Losses", "TotalGames"];
+        this.tableHeaders = ['key', "Delta Goals", "Result", "Wins", "Losses", "TotalGames"];
 
         /** letiables to be used when sizing the svgs in the table cells.*/
         this.cell = {
@@ -101,16 +101,52 @@ class Table {
         // ******* TODO: PART V *******
 
         // Set sorting callback for clicking on headers
+        var sortLogic = [];
+        for(var i=0; i<this.tableHeaders.length; i++){
+            sortLogic[i]=false;
+        }
+
         var header = d3
             .select('#matchTable')
             .select('thead')
             .select('tr')
             .selectAll(['td', 'th']);
         header.on('click', (d,i)=>{
-            console.log(this.tableHeaders[i])
-            
-        
-            })
+            if(i===0){
+                sortLogic[i] = !sortLogic[i];
+                if(sortLogic[i]){
+                    this.tableElements.sort((a,b)=>(a[this.tableHeaders[i]]>b[this.tableHeaders[i]]) ? 1:-1)
+                    this.collapseList()
+                    this.updateTable()
+                }else{
+                    this.tableElements.sort((a,b)=>(a[this.tableHeaders[i]]<b[this.tableHeaders[i]]) ? 1:-1)
+                    this.collapseList()
+                    this.updateTable()
+                }
+            }else if(i===2){
+                sortLogic[i] = !sortLogic[i];
+                if(sortLogic[i]){
+                    this.tableElements.sort((a,b)=>(a.value.Result.ranking>b.value.Result.ranking) ? 1:-1)
+                    this.collapseList()
+                    this.updateTable()
+                }else{
+                    this.tableElements.sort((a,b)=>(a.value.Result.ranking<b.value.Result.ranking) ? 1:-1)
+                    this.collapseList()
+                    this.updateTable()
+                }
+            }else{
+                sortLogic[i] = !sortLogic[i];
+                if(sortLogic[i]){
+                    this.tableElements.sort((a,b)=>(a.value[this.tableHeaders[i]]<b.value[this.tableHeaders[i]]) ? 1:-1)
+                    this.collapseList()
+                    this.updateTable()
+                }else{
+                    this.tableElements.sort((a,b)=>(a.value[this.tableHeaders[i]]>b.value[this.tableHeaders[i]]) ? 1:-1)
+                    this.collapseList()
+                    this.updateTable()
+                }
+            }
+        })
         //Set sorting callback for clicking on Team header
         //Clicking on headers should also trigger collapseList() and updateTable().
 
@@ -121,7 +157,6 @@ class Table {
      * Updates the table contents with a row for each element in the global variable tableElements.
      */
     updateTable() {
-        console.log('FUCK')
         // ******* TODO: PART III *******
         //Create table rows
         //FIND WHERE I AM AND APPEND THE DATA
@@ -129,7 +164,9 @@ class Table {
             .select('tbody')
             .selectAll('tr').html(null)
             .data(this.tableElements)
-            .join('tr');
+            .join('tr')
+            .on('mouseover', (d,i)=>this.tree.updateTree(d))
+            .on('mouseout', (d,i)=>this.tree.clearTree());
         //ENTER AND APPEND TABLE ROWS
         tableRows
             .append('th')
@@ -291,17 +328,16 @@ class Table {
      *
      */
     updateList(i) {
-        console.log(i)
         // ******* TODO: PART IV *******
-        console.log(this.tableElements)
-        //select the games to append
-        this.tableElements[i].value.games.map(
-            (d)=>this.tableElements.splice((i+1),0,d))
-        console.log(this.tableElements.filter(d=>d.value.type=='game').map(d=>d.key='x'+d.key))
-       //Only update list for aggregate clicks, not game clicks
-        console.log(this.tableElements)
-        this.updateTable()
-        
+        if(this.tableElements[i].value.type==='aggregate' && this.tableElements[i+1].value.type==='aggregate'){
+            //select the games to append
+            this.tableElements[i].value.games.map(d=>this.tableElements.splice((i+1),0,d))
+            this.tableElements.filter(d=>d.value.type=='game').map(d=>d.key='x'+d.key)
+            //Only update list for aggregate clicks, not game clicks
+            this.updateTable()
+        }else if( this.tableElements[i].value.type==='game'){
+        }else{this.collapseList()}
+            
     }
 
     /**
@@ -309,9 +345,11 @@ class Table {
      *
      */
     collapseList() {
-        
+        console.log(this.tableElements)
         // ******* TODO: PART IV *******
-
+        console.log(this.tableElements.filter(d=>d.value.type==='game').map(d=>d.key = d.key.substring(1)));
+        this.tableElements = this.tableElements.filter(d=> d.value.type==='aggregate')
+        this.updateTable()
     }
 
 
