@@ -4,7 +4,7 @@ class Table {
      * Creates a Table Object
      */
     constructor(teamData, treeObject) {
-        console.log(teamData)
+        //console.log(teamData)
         // Maintain reference to the tree object
         this.tree = treeObject;
 
@@ -37,7 +37,7 @@ class Table {
         this.goalScale = d3
             .scaleLinear()
             .domain([0,goalScaleMax])
-            .range([0,150-(this.cell.buffer)]);
+            .range([0,135-(this.cell.buffer)]);
 
 
         /** Used for games/wins/losses*/
@@ -90,7 +90,7 @@ class Table {
         d3.select('#goalHeaderAxis')
             .append('g')
             //REMEBER TO TRANFORM THE GROUPING ELEMENT NOT THE SVG
-            .attr('transform','translate(0,'+this.cell.height+')')
+            .attr('transform','translate(5,'+this.cell.height+')')
             .attr('id', 'goalAxis')
             .call(goalXAxis)
 
@@ -126,11 +126,11 @@ class Table {
             }else if(i===2){
                 sortLogic[i] = !sortLogic[i];
                 if(sortLogic[i]){
-                    this.tableElements.sort((a,b)=>(a.value.Result.ranking>b.value.Result.ranking) ? 1:-1)
+                    this.tableElements.sort((a,b)=>(a.value.Result.ranking<b.value.Result.ranking) ? 1:-1)
                     this.collapseList()
                     this.updateTable()
                 }else{
-                    this.tableElements.sort((a,b)=>(a.value.Result.ranking<b.value.Result.ranking) ? 1:-1)
+                    this.tableElements.sort((a,b)=>(a.value.Result.ranking>b.value.Result.ranking) ? 1:-1)
                     this.collapseList()
                     this.updateTable()
                 }
@@ -276,7 +276,10 @@ class Table {
             .attr('cx',d=>this.goalScale(d.value['Goals Conceded']))
             .attr('cy', this.cell.buffer)
             .attr('fill',d=>d.value['Delta Goals']===0?'lightgray':'red')
+            .append('svg:title')
+            .text(d=>d.value['Goals Conceded'])
 
+        
         tableCollumns
             .filter(d => d.vis=='goals' && d.type=='aggregate')
             .select('svg')
@@ -285,7 +288,8 @@ class Table {
             .attr('cx',d=>this.goalScale(d.value['Goals Made']))
             .attr('cy', this.cell.buffer)
             .attr('fill',d=>d.value['Delta Goals']===0?'lightgray':'blue')
-
+            .append('svg:title')
+            .text(d=>d.value['Goals Made'])
         //Set the color of all games that tied to light gray
     tableCollumns
         .filter(d => d.vis=='goals' && d.type=='game')
@@ -310,6 +314,9 @@ class Table {
         //.attr('stroke-width', 1)
         .attr('stroke',d=>d.value['Delta Goals']==='0'?'lightgray':'red')
         .attr('fill','white')
+        .append('svg:title')
+        .text(d=>d.value['Goals Conceded'])
+
 
     tableCollumns
         .filter(d => d.vis=='goals' && d.type=='game')
@@ -321,6 +328,9 @@ class Table {
         //.attr('stroke-width', 1)
         .attr('stroke',d=>d.value['Delta Goals']==='0'?'lightgray':'blue')
         .attr('fill', 'white')
+        .append('svg:title')
+        .text(d=>d.value['Goals Made'])
+
     };
 
     /**
@@ -331,11 +341,15 @@ class Table {
         // ******* TODO: PART IV *******
         if(this.tableElements[i].value.type==='aggregate' && this.tableElements[i+1].value.type==='aggregate'){
             //select the games to append
+            this.tableElements[i].value.games.sort((a,b)=> a.value.Result.ranking < b.value.Result.ranking ? -1:1 )
+
             this.tableElements[i].value.games.map(d=>this.tableElements.splice((i+1),0,d))
             this.tableElements.filter(d=>d.value.type=='game').map(d=>d.key='x'+d.key)
             //Only update list for aggregate clicks, not game clicks
             this.updateTable()
         }else if( this.tableElements[i].value.type==='game'){
+            //console.log(this.tableElements)
+
         }else{this.collapseList()}
             
     }
@@ -345,9 +359,9 @@ class Table {
      *
      */
     collapseList() {
-        console.log(this.tableElements)
+        //console.log(this.tableElements)
         // ******* TODO: PART IV *******
-        console.log(this.tableElements.filter(d=>d.value.type==='game').map(d=>d.key = d.key.substring(1)));
+        //console.log(this.tableElements.filter(d=>d.value.type==='game').map(d=>d.key = d.key.substring(1)));
         this.tableElements = this.tableElements.filter(d=> d.value.type==='aggregate')
         this.updateTable()
     }

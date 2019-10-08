@@ -88,7 +88,7 @@ d3.csv("data/fifa-matches-2018.csv").then( matchesCSV => {
                     'Goals Conceded': d['Goals Conceded'],
                     'Goals Made': d['Goals Made'],
                     Losses: '',
-                    Opponent: d.Opponent,
+                    Opponent: d.Team,
                     Wins:'',
                     type:'game',
                     //THIS IS THE EASY WAY TO INVOKE THE RESULT

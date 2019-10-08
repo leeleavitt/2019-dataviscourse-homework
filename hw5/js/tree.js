@@ -13,7 +13,7 @@ class Tree {
      * @param treeData an array of objects that contain parent/child information.
      */
     createTree(treeData) {
-        console.log(treeData)
+        //console.log(treeData)
         // ******* TODO: PART VI *******
 
         //Create a tree and give it a size() of 800 by 300. 
@@ -27,7 +27,7 @@ class Tree {
 
         const hData = d3.hierarchy(treeStrat, d=>d.children)
         const nodes = treeMap(hData)
-        console.log(nodes)
+        //console.log(nodes)
         
 
         d3.select("#tree")
@@ -35,7 +35,7 @@ class Tree {
             .selectAll('.link')
             .data(nodes.descendants().slice(1))
             .join('path')
-            .attr('class',d=>`link ${d.data.data.Team}`)
+            .attr('class',d=>`link ${d.data.data.Team} ${d.data.data.Team}Team ${d.data.data.Opponent}`)
             //.attr('class', d=>console.log(d.data.data.Team))
             .attr("d",
                 d=> `M ${d.y}, ${d.x} C ${(d.y + d.parent.y) / 2}, ${d.x} ${(d.y + d.parent.y)/2}, ${d.parent.x} ${d.parent.y}, ${d.parent.x}`
@@ -57,7 +57,7 @@ class Tree {
             .append('text')
             .attr('dy','0.35em')
             .attr('x', d=>(d.children? -60:13))
-            .attr('class',d=>`text${d.data.data.Team}`)
+            .attr('class',d=>`text${d.data.data.Team} text${d.data.data.Team}Team text${d.data.data.Opponent}` )
             //.classed('node',true)
             .text(d=>d.data.data.Team)
         //Add nodes and links to the tree. 
@@ -70,20 +70,24 @@ class Tree {
      * @param row a string specifying which team was selected in the table.
      */
     updateTree(row) {
-        console.log(row)
-        d3.select("#tree").selectAll(`.${row}`).classed('selected', true)
-        d3.select("#tree").selectAll(`.text${row}`).classed('selectedLabel', true)
+        //console.log(row.value.type)
+        if(row.value.type==='aggregate'){
+            d3.select("#tree").selectAll(`.${row.key}Team`).classed('selected', true)
+            d3.select("#tree").selectAll(`.text${row.key}Team`).classed('selectedLabel', true)
+        }else{
+            //console.log(row)
+            d3.selectAll(`.${row.key.substring(1)}`).filter(`.${row.value.Opponent}`).classed('selected', true)
+            d3.selectAll(`.text${row.key.substring(1)}`).filter(`.text${row.value.Opponent}`).classed('selectedLabel', true)
+        }
         
         // ******* TODO: PART VII *******
-        
-    
     }
 
     /**
      * Removes all highlighting from the tree.
      */
     clearTree() {
-        console.log('hi')
+        //console.log('hi')
         d3.select("#tree").selectAll('.selected').classed('selected',false)
         d3.select("#tree").selectAll('.selectedLabel').classed('selectedLabel',false)
         // ******* TODO: PART VII *******
