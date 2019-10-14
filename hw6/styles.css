@@ -28,6 +28,13 @@ text.label {
     font-weight: bold;
 }
 
+.axisLabel{
+    font-weight:bold;
+    font: 20px sans-serif;
+
+}
+
+
 @font-face {
     font-family: 'font1';
     src: url('assets/font1.ttf');

@@ -55,14 +55,17 @@ class bubbleChart{
             .attr('height', 40);
         graphLabel
             .append('text')
+            .classed('axisLabel', true)
             .attr('x', this.width/15)
             .attr('y', 20)
-            .text('Democratic Leaning')
+            .text('Democratic Leaning');
+
         graphLabel
             .append('text')
+            .classed('axisLabel', true)
             .attr('x', this.width * (12/15))
             .attr('y', 20)
-            .text('Republican Leaning')
+            .text('Republican Leaning');
 
     
         //SVG to plot on
@@ -230,8 +233,8 @@ class bubbleChart{
             let uniqueCats = []
 
             var txtCats = d3.select('#bubbleChart-svg')
-            .selectAll('text.label')
-            .data(uniqueCats)
+                .selectAll('text.label')
+                .data(uniqueCats)
         
             var txtCatsEnter= txtCats
                 .enter()
@@ -252,11 +255,8 @@ class bubbleChart{
                 .attr('y', (d,i)=> (i*135)+50)
                 .text(d=> (d.charAt(0).toUpperCase()+d.substring(1)) );
 
-
                 d3.select('#bubbleChart-svg')
                     .selectAll('text.label')
-
-
 
                 this.bubbleChart('sourceX','sourceY')
         }
