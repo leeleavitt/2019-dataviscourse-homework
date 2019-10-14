@@ -20,13 +20,32 @@ class Table{
             .attr('id', '#govTableHeader')
 
         var cols = ['Phrase','Frequency','Percentages','Total']
+        var headerSvgWidths = [100,200,300,100]
+
+        var headerInfo = []
+        for(var i=0; i < cols.length; i++){
+            var newobj = {}
+            newobj['width'] = headerSvgWidths[i]
+            newobj['col'] = cols[i]
+            headerInfo[i] = newobj
+        }
+        console.log(headerInfo)
+
         header
             .selectAll('td')
-            .data(cols)
+            .data(headerInfo)
             .enter()
             .append('td')
-            .text(d=> d)
+            .append('svg')
+            .attr('height', 100)
+            .attr('width', d=>d.width)
+            .append('text')
+            .attr('x',d=> d.width/2)
+            .attr('y', 50)
+            .text(d=> d.col)
 
+
+            
 
 
     }
