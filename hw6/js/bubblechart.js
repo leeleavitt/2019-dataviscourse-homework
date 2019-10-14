@@ -30,12 +30,14 @@ class bubbleChart{
         
         d3.select('#switchContainer')
             .text('Grouped by Topic')
+            .append('span')
             .append('input')
             .attr('type', 'checkbox')
             .attr('id', 'topicCheck')
             // .attr('data-toggle', 'toggle')
             // .attr('data-size', 'mini')
             .on('click',d=>this.updateBubble())
+            .append('span')
 
             //.on('click',this.updateBubble())
 
@@ -44,6 +46,25 @@ class bubbleChart{
             .attr('type', 'button')
             .attr('value', 'Show Extremes')
 
+        //Graph Label
+        var graphLabel = d3.select('#bubbleChart')
+            .append('div')
+            .attr('id', 'axisLabel')
+            .append('svg')
+            .attr('width', this.width)
+            .attr('height', 40);
+        graphLabel
+            .append('text')
+            .attr('x', this.width/15)
+            .attr('y', 20)
+            .text('Democratic Leaning')
+        graphLabel
+            .append('text')
+            .attr('x', this.width * (12/15))
+            .attr('y', 20)
+            .text('Republican Leaning')
+
+    
         //SVG to plot on
         d3.select('#bubbleChart')
             .append('div')
@@ -54,6 +75,9 @@ class bubbleChart{
             .append('div')
             .attr('class','tooltip')
             .style('opacity',0)
+
+
+
         
         //Plot svg
         d3.select('#bChartWrap')
@@ -105,81 +129,148 @@ class bubbleChart{
             return self.indexOf(value) === index
         }
         //unique categories
-        var uniqueCats = this.govData.map(d=>d.category).filter(unique)
+        this.uniqueCats = this.govData.map(d=>d.category).filter(unique)
         var colors = ["#1b9e77","#d95f02","#7570b3","#e7298a","#66a61e","#e6ab02","#a6761d","#666666"]
         this.bubbleColors = d3.scaleOrdinal()
-            .domain(uniqueCats)        
+            .domain(this.uniqueCats)        
             .range(colors)
 
-        
+        //Background Line
+        d3.select('#bubbleChart-svg')
+            .append('line')
+            .attr('id','backGroundLine');
 
+        //Label Text
+        d3.select('#bubbleChart-svg')
+            .append('text')
+            .classed('label',true);
+
+        
         this.bubbleChart('sourceX', 'sourceY')
+
 
 
     }
 
     bubbleChart(xValuePointer, yValuePointer){
-        
+        var that = this
         this.xVal = xValuePointer
         this.yVal = yValuePointer
 
-        //Add the 0 line
-        
-        var bubbles = d3.select('#bubbleChart-svg').selectAll('circle').data(this.govData)
-            
 
+        var bubbles = d3.select('#bubbleChart-svg').selectAll('circle').data(this.govData)
+
+        // To allow for on transitions, you must bind it to the enter selection
         var bubblesEnter = bubbles
             .enter()
             .append('circle')
-
-
-        bubbles.exit().remove()
-
-        bubbles = bubblesEnter.merge(bubbles)
-            .attr('transform',`translate(${this.margin.left},100)`)
-            .attr('cx', d=>d[this.xVal])
-            .attr('cy', d=> d[this.yVal])
-            .attr('r', d=>this.bubbleScale(d.total))
-            .attr('fill',d=>this.bubbleColors(d.category))
-            .attr('stroke','black')
-            .attr('stroke-width',1)
             .on('mouseover', function(d){
                 var tooltip = d3.select('.tooltip')
                 tooltip.transition().duration(100).style('opacity',.9);
-                tooltip.html(
-                    d.phrase + '<br/>'
-                    + "R+" + Math.abs(d.percent_of_d_speeches - d.percent_of_r_speeches) + '<br/>'
-                    +"In "+ (d.total/50)+ "of speeches")
+                tooltip.html(that.toolTipRender(d))
                     .style('left', (d3.event.pageX)+'px')
                     .style('top', (d3.event.pageY-28)+'px');
             })
             .on('mouseout', function(d){
                 var tooltip = d3.select('.tooltip')
                 tooltip.transition().duration(500).style('opacity')
-            })
-
+            });
         
-        bubbles.transition().duration(500)
+        bubbles.exit().remove()
 
-        
+        //Now you can use the transition duration effects
+        bubbles = bubblesEnter.merge(bubbles)
+            .transition().duration(500)
+            .attr('transform',`translate(${this.margin.left},100)`)
+            .attr('cx', d=>d[this.xVal])
+            .attr('cy', d=> d[this.yVal])
+            .attr('r', d=>this.bubbleScale(d.total))
+            .attr('fill',d=>this.bubbleColors(d.category))
+            .attr('stroke','black')
+            .attr('stroke-width',1);
+            
+        //Add the 0 line
+        var y2 =  Math.max(...this.govData.map(d=>d[yValuePointer])) + 150
+        console.log(y2)
+        d3.select('#backGroundLine')
+            .transition().duration(500)
+            .attr('x1', that.xScale(0))
+            .attr('x2', that.xScale(0))
+            .attr('y1',this.margin.top)
+            .attr('y2',y2)
+            .style('stroke-width',2)
+            .style('stroke','black')
+
     }
 
     updateBubble(){
         if(document.getElementById('topicCheck').checked){
+            
+            console.log(this.uniqueCats)
+            var txtCats = d3.select('#bubbleChart-svg')
+                .selectAll('text.label')
+                .data(this.uniqueCats)
+            
+            var txtCatsEnter= txtCats
+                .enter()
+                .append('text')
+                .classed('label', true);
+                
+            txtCats.exit().remove()
+            
+            txtCats = txtCatsEnter.merge(txtCats)
+                .transition().duration(500)
+                .attr('x', d => 50)
+                .attr('y', (d,i)=> (i*135)+50)
+                .text(d=> (d.charAt(0).toUpperCase()+d.substring(1)) );
+
             this.bubbleChart('moveX','moveY')
+
         }else{
-            this.bubbleChart('sourceX','sourceY')
+            let uniqueCats = []
+
+            var txtCats = d3.select('#bubbleChart-svg')
+            .selectAll('text.label')
+            .data(uniqueCats)
+        
+            var txtCatsEnter= txtCats
+                .enter()
+                .append('text')
+                .classed('label', true);
+                
+            txtCats
+                .exit()
+                .style('opacity',1)
+                .transition()
+                .duration(500)
+                .style('opacity', 0)
+                .remove();
+            
+            txtCats = txtCatsEnter.merge(txtCats)
+                .transition().duration(500)
+                .attr('x', d => 50)
+                .attr('y', (d,i)=> (i*135)+50)
+                .text(d=> (d.charAt(0).toUpperCase()+d.substring(1)) );
+
+
+                d3.select('#bubbleChart-svg')
+                    .selectAll('text.label')
+
+
+
+                this.bubbleChart('sourceX','sourceY')
         }
     }
 
     toolTipRender(d){
-        let text = '<h2>' + (d.phrase.charAt(0).toUpperCase() + d.phrase.substring(1)) + '</h2>'
-        // d.phrase + '<br/>'
-        // + "R+" + Math.abs(d.percent_of_d_speeches - d.percent_of_r_speeches) + '<br/>'
-        // +"In "+ (d.total/50)+ "of speeches")
-        // .style('left', (d3.event.pageX)+'px')
-        // .style('top', (d3.event.pageY-28)+'px');
+        let firstLine = '<h2>' + (d.phrase.charAt(0).toUpperCase() + d.phrase.substring(1)) + '</h2>'
 
+        let secondLine = '<h3>'+ 'R+ '+ (Math.abs(d.percent_of_d_speeches - d.percent_of_r_speeches)*100).toFixed(3)+ '</h3>'
+
+        let thirdLine = '<h3>'+ 'In '+(d.total/50*100).toFixed(0)+'% of speeches'+'</h3>'
+
+        let output = firstLine+secondLine+thirdLine
+        return output
     }
 
 }

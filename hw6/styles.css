@@ -4,7 +4,7 @@ div.tooltip {
     position: absolute;
     text-align: center;
     min-width: 60px;
-    height: 60px;
+    height: 50px;
     padding: 2px;
     background: white;
     stroke: gray;
@@ -15,8 +15,18 @@ div.tooltip {
 .tooltip h2 {
     margin: auto;
     font: 14px sans-serif;
+    font-weight: bold;
 }
 
+.tooltip h3 {
+    margin: auto;
+    font: 12px sans-serif;
+}
+
+text.label {
+    font: 16px sans-serif;
+    font-weight: bold;
+}
 
 @font-face {
     font-family: 'font1';
