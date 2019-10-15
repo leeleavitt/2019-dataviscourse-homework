@@ -46,4 +46,22 @@ text.label {
 }
 
 
+#bubbleChart{
+    width: 1050px;
+    padding: 0.5em;
+    float: left;
 
+}
+
+#tableContainer {
+    width: 900px;
+    padding: 0.5em;
+    float: left;
+}
+
+.totalText{
+    position: absolute;
+    text-align:center;
+    font: 20px sans-serif;
+    font-weight:bold;
+}
