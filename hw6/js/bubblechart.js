@@ -148,6 +148,14 @@ class bubbleChart{
             .append('text')
             .classed('label',true);
 
+        //Brushes
+        for(var i=0; i<this.uniqueCats.length; i++){
+            var brushGroup = d3.select('#bubbleChart-svg').append('g').attr('id',`${this.uniqueCats[i]}brush`)
+            this[`${this.uniqueCats}Brush`] = d3.brush([this.margin.left, (i*135)+50], [this.width, 135])
+            brushGroup.call(this[`${this.uniqueCats}Brush`])
+        }
+
+
         
         this.bubbleChart('sourceX', 'sourceY')
 
