@@ -339,6 +339,7 @@ class bubbleChart{
         //Brushes
         for(var i=0; i<this.uniqueCats.length; i++){
             this[`${this.uniqueCats[i]}Brush`].clear()
+            //hazjjkfkj
         }
 
     }
