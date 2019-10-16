@@ -3,19 +3,16 @@ class bubbleChart{
     /**
      * Creates the bubble chart object
      */
-    constructor(govData){
+    constructor(govData, tableObject){
         /**All Phrases the Govenors Use */
         this.govData = govData;
+        this.table = tableObject;
+
         this.margin = { top: 20, right: 20, bottom: 60, left: 10 };
         this.width = 1000 - this.margin.left - this.margin.right;
         this.height = 1000 - this.margin.top - this.margin.bottom;
 
         console.log(govData)
-        console.log(Math.max(...this.govData.map(d=>d.position) ) )
-        console.log(Math.min(...this.govData.map(d=>d.position) ) )
-
-        console.log(Math.max(...this.govData.map(d=>d.moveY) ) )
-        console.log(Math.max(...this.govData.map(d=>d.sourceY) ) )
 
 
     }
@@ -39,8 +36,6 @@ class bubbleChart{
             .on('click',d=>this.updateBubbleChart())
             .append('span')
 
-            //.on('click',this.updateBubbleChart())
-
         d3.select('#switchContainer')
             .append('input')
             .attr('type', 'button')
@@ -59,7 +54,6 @@ class bubbleChart{
             .attr('x', this.width/15)
             .attr('y', 20)
             .text('Democratic Leaning');
-
         graphLabel
             .append('text')
             .classed('axisLabel', true)
@@ -67,7 +61,6 @@ class bubbleChart{
             .attr('y', 20)
             .text('Republican Leaning');
 
-    
         //SVG to plot on
         d3.select('#bubbleChart')
             .append('div')
@@ -79,9 +72,6 @@ class bubbleChart{
             .attr('class','tooltip')
             .style('opacity',0)
 
-
-
-        
         //Plot svg
         d3.select('#bChartWrap')
             .append('svg')
@@ -148,16 +138,25 @@ class bubbleChart{
             .append('text')
             .classed('label',true);
 
+        
         //Brushes
+        var brushGroups = []
         for(var i=0; i<this.uniqueCats.length; i++){
-            var brushGroup = d3.select('#bubbleChart-svg').append('g').attr('id',`${this.uniqueCats[i]}brush`)
-            this[`${this.uniqueCats}Brush`] = d3
-                .brushX([0, i+50], [700, i+135])
-                .on('start end', this.updateBubbles())
-            brushGroup.call(this[`${this.uniqueCats}Brush`])
+            brushGroups[i] = d3.select('#bubbleChart-svg')
+                .append('g')
+                .attr('id',`${this.uniqueCats[i]}brush`)
+                .attr('transform', `translate(${this.margin.left},0)`)
+                .attr('class','brush');
+            
+            this[`${this.uniqueCats[i]}Brush`] = d3.brushX()
+                .extent([[0, (i*135)+38], [this.width,(i*135)+170]])
+                .on('end',()=>{
+                    this.updateBubbles()
+                })
+            brushGroups[i].call(this[`${this.uniqueCats[i]}Brush`])
         }
-
-
+                    
+        
         
         this.bubbleChart('sourceX', 'sourceY')
 
@@ -200,7 +199,8 @@ class bubbleChart{
             .attr('r', d=>this.bubbleScale(d.total))
             .attr('fill',d=>this.bubbleColors(d.category))
             .attr('stroke','black')
-            .attr('stroke-width',1);
+            .attr('stroke-width',1)
+            .attr('class', d=>d.category);
             
         //Add the 0 line
         var y2 =  Math.max(...this.govData.map(d=>d[yValuePointer])) + 150
@@ -218,7 +218,7 @@ class bubbleChart{
 
     updateBubbleChart(){
         if(document.getElementById('topicCheck').checked){
-            
+            //TEXT CATS 
             console.log(this.uniqueCats)
             var txtCats = d3.select('#bubbleChart-svg')
                 .selectAll('text.label')
@@ -236,8 +236,10 @@ class bubbleChart{
                 .attr('x', d => 50)
                 .attr('y', (d,i)=> (i*135)+50)
                 .text(d=> (d.charAt(0).toUpperCase()+d.substring(1)) );
-
-            this.bubbleChart('moveX','moveY')
+            
+            this.xVal = 'moveX'
+            this.yVal = 'moveY'
+            this.bubbleChart(this.xVal,this.yVal)
 
         }else{
             let uniqueCats = []
@@ -265,10 +267,12 @@ class bubbleChart{
                 .attr('y', (d,i)=> (i*135)+50)
                 .text(d=> (d.charAt(0).toUpperCase()+d.substring(1)) );
 
-                d3.select('#bubbleChart-svg')
-                    .selectAll('text.label')
-
-                this.bubbleChart('sourceX','sourceY')
+            d3.select('#bubbleChart-svg')
+                .selectAll('text.label')
+            this.xVal = 'sourceX'
+            this.yVal = 'sourceY'
+            this.bubbleChart(this.xVal,this.yVal)
+    
         }
     }
 
@@ -283,8 +287,59 @@ class bubbleChart{
         return output
     }
 
-    updateBubbles(){
-        console.log(d3.event)
+    isBrushed(brush_coors, cx){
+        var x0 = brush_coors[0],
+            x1 = brush_coors[1];
+        return cx <= x0 || cx >= x1
     }
 
+
+    updateBubbles(){
+        //Detect which brush was selected
+        var brushSelection =  d3.event.sourceEvent.path[1].id.replace('brush','')
+        console.log(brushSelection)
+        //Now filter the 
+        var bubbleSelection = d3.event.selection
+        //console.log(bubbleSelection)
+        if(bubbleSelection!== null){
+            var that = this
+            //We need to gray out all circles that are not in the selection
+            if(document.getElementById('topicCheck').checked){
+                //This need to update the table
+                var selectedGov = this.govData.filter(d=>  d[this.xVal] >bubbleSelection[0] &&  d[this.xVal] < bubbleSelection[1] && d.category == brushSelection)
+                this.table.updateTable(selectedGov)
+
+                d3.select('#bubbleChart-svg')
+                    .selectAll('circle')
+                    .classed('unselected', true);
+                var allCircles = d3.select('#bubbleChart-svg')
+                    .selectAll('circle')
+                    .filter(d=> d.category === brushSelection)
+
+                allCircles.classed('unselected', function(d){
+                    return that.isBrushed(bubbleSelection, Number(d[that.xVal]))
+                    })
+
+            }else{
+                var selectedGov = this.govData.filter(d=>  d[this.xVal] >bubbleSelection[0] &&  d[this.xVal] < bubbleSelection[1])
+                var allCircles = d3.select('#bubbleChart-svg')
+                    .selectAll('circle')
+
+                allCircles.classed('unselected', function(d){
+                    return that.isBrushed(bubbleSelection, Number(d[that.xVal]))
+                    })
+                
+                this.table.updateTable(selectedGov)
+            }
+        }
+    }
+
+    brushClear(){
+        //d3.selectAll('.brush').call(d=>d.clear)
+        //Brushes
+        for(var i=0; i<this.uniqueCats.length; i++){
+            this[`${this.uniqueCats[i]}Brush`].clear()
+        }
+
+    }
 }

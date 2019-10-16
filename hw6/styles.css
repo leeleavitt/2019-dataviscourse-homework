@@ -65,3 +65,12 @@ text.label {
     font: 20px sans-serif;
     font-weight:bold;
 }
+
+.unselected{
+    fill: gray;
+}
+
+
+
+
+

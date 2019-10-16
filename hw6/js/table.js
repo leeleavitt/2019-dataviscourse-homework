@@ -40,7 +40,7 @@ class Table{
 
     }
 
-    createTable(){
+    createTable(data){
         //CREATE TABLE CONTAINER
         d3.select('#header-wrap')
             .append('div')
@@ -132,10 +132,10 @@ class Table{
                 sortLogic[i] = !sortLogic[i];
                 if(sortLogic[i]){
                     this.govData.sort((a,b) => (a[headerVals[i]] > b[headerVals[i]]) ? 1:-1)
-                    this.updateTable()
+                    this.updateTable(data)
                 }else{
                     this.govData.sort((a,b) => (a[headerVals[i]] < b[headerVals[i]]) ? 1:-1)
-                    this.updateTable()                    
+                    this.updateTable(data)                    
                 }
             }
 
@@ -143,10 +143,10 @@ class Table{
                 sortLogic[i] = !sortLogic[i];
                 if(sortLogic[i]){
                     this.govData.sort((a,b) => (Number(a[headerVals[i]]) < Number(b[headerVals[i]])) ? 1:-1)
-                    this.updateTable()
+                    this.updateTable(data)
                 }else{
                     this.govData.sort((a,b) => (Number(a[headerVals[i]]) > Number(b[headerVals[i]])) ? 1:-1)
-                    this.updateTable()                    
+                    this.updateTable(data)                    
                 }
             }
 
@@ -156,12 +156,12 @@ class Table{
                     this.govData.sort((a,b) => (
                         (Number(a['percent_of_d_speeches']) + Number(a['percent_of_r_speeches']) ) < 
                         (Number(b['percent_of_d_speeches']) + Number(b['percent_of_r_speeches']) ) ? 1:-1))
-                    this.updateTable()
+                    this.updateTable(data)
                 }else{
                     this.govData.sort((a,b) => (
                         (Number(a['percent_of_d_speeches']) + Number(a['percent_of_r_speeches']) ) > 
                         (Number(b['percent_of_d_speeches']) + Number(b['percent_of_r_speeches']) ) ? 1:-1))
-                    this.updateTable()
+                    this.updateTable(data)
                 }
             }
 
@@ -170,29 +170,29 @@ class Table{
                 if(sortLogic[i]){
                     this.govData.sort((a,b) => (Number(a[headerVals[i]]) < Number(b[headerVals[i]])) ? 1:-1)
                     console.log(this.govData)
-                    this.updateTable()
+                    this.updateTable(data)
                 }else{
                     this.govData.sort((a,b) => (Number(a[headerVals[i]]) > Number(b[headerVals[i]])) ? 1:-1)
                     console.log(this.govData)
-                    this.updateTable()                    
+                    this.updateTable(data)                    
                 }
             }
         })
     
 
     
-        this.updateTable()
+        this.updateTable(data)
     }
 
 
 
-    updateTable(){
+    updateTable(data){
         
         console.log(this.govData)
         var tableRows = d3.select('#govTable')
             .select('tbody')
             .selectAll('tr').html(null)
-            .data(this.govData)
+            .data(data)
             .join('tr');
 
         tableRows
