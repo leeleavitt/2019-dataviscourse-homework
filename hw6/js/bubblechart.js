@@ -138,7 +138,14 @@ class bubbleChart{
             .append('text')
             .classed('label',true);
 
-        
+        //this.createBrush()
+
+        this.bubbleChart('sourceX', 'sourceY')
+
+    }
+
+
+    createBrush(){
         //Brushes
         var brushGroups = []
         for(var i=0; i<this.uniqueCats.length; i++){
@@ -155,11 +162,6 @@ class bubbleChart{
                 })
             brushGroups[i].call(this[`${this.uniqueCats[i]}Brush`])
         }
-                    
-        
-        
-        this.bubbleChart('sourceX', 'sourceY')
-
 
 
     }
@@ -335,12 +337,14 @@ class bubbleChart{
     }
 
     brushClear(){
-        //d3.selectAll('.brush').call(d=>d.clear)
+        d3.selectAll('.brush').remove()
+        d3.selectAll('.unselected').classed('unselected',false)
+        this.createBrush()
         //Brushes
-        for(var i=0; i<this.uniqueCats.length; i++){
-            this[`${this.uniqueCats[i]}Brush`].clear()
-            //hazjjkfkj
-        }
+        // for(var i=0; i<this.uniqueCats.length; i++){
+        //     this[`${this.uniqueCats[i]}Brush`].clear()
+        //     //hazjjkfkj
+        //}
 
     }
 }
