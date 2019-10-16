@@ -36,10 +36,10 @@ class bubbleChart{
             .attr('id', 'topicCheck')
             // .attr('data-toggle', 'toggle')
             // .attr('data-size', 'mini')
-            .on('click',d=>this.updateBubble())
+            .on('click',d=>this.updateBubbleChart())
             .append('span')
 
-            //.on('click',this.updateBubble())
+            //.on('click',this.updateBubbleChart())
 
         d3.select('#switchContainer')
             .append('input')
@@ -151,7 +151,9 @@ class bubbleChart{
         //Brushes
         for(var i=0; i<this.uniqueCats.length; i++){
             var brushGroup = d3.select('#bubbleChart-svg').append('g').attr('id',`${this.uniqueCats[i]}brush`)
-            this[`${this.uniqueCats}Brush`] = d3.brush([this.margin.left, (i*135)+50], [this.width, 135])
+            this[`${this.uniqueCats}Brush`] = d3
+                .brushX([0, i+50], [700, i+135])
+                .on('start end', this.updateBubbles())
             brushGroup.call(this[`${this.uniqueCats}Brush`])
         }
 
@@ -214,7 +216,7 @@ class bubbleChart{
 
     }
 
-    updateBubble(){
+    updateBubbleChart(){
         if(document.getElementById('topicCheck').checked){
             
             console.log(this.uniqueCats)
@@ -279,6 +281,10 @@ class bubbleChart{
 
         let output = firstLine+secondLine+thirdLine
         return output
+    }
+
+    updateBubbles(){
+        console.log(d3.event)
     }
 
 }
