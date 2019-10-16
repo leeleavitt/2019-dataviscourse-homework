@@ -148,14 +148,24 @@ class bubbleChart{
             .append('text')
             .classed('label',true);
 
+        
         //Brushes
+        var brushGroups = []
         for(var i=0; i<this.uniqueCats.length; i++){
-            var brushGroup = d3.select('#bubbleChart-svg').append('g').attr('id',`${this.uniqueCats[i]}brush`)
-            this[`${this.uniqueCats}Brush`] = d3.brush([this.margin.left, (i*135)+50], [this.width, 135])
-            brushGroup.call(this[`${this.uniqueCats}Brush`])
+            brushGroups[i] = d3.select('#bubbleChart-svg')
+                .append('g')
+                .attr('id',`${this.uniqueCats[i]}brush`)
+            
+            this[`${this.uniqueCats}Brush`] = d3.brushX()
+                .extent([[0, (i*135)+38], [this.width,(i*135)+170]])
+                .on('end',()=>{
+                    const selection = d3.brushSelection(this.govData)
+                    console.log(selection)
+                })
+            brushGroups[i].call(this[`${this.uniqueCats}Brush`])
         }
-
-
+                    
+        
         
         this.bubbleChart('sourceX', 'sourceY')
 
@@ -216,7 +226,7 @@ class bubbleChart{
 
     updateBubble(){
         if(document.getElementById('topicCheck').checked){
-            
+            //TEXT CATS 
             console.log(this.uniqueCats)
             var txtCats = d3.select('#bubbleChart-svg')
                 .selectAll('text.label')
