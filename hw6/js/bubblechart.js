@@ -8,6 +8,9 @@ class bubbleChart{
         this.govData = govData;
         this.table = tableObject;
 
+        // a container for selected data to live
+        this.selectedGov = []
+
         this.margin = { top: 20, right: 20, bottom: 60, left: 10 };
         this.width = 1000 - this.margin.left - this.margin.right;
         this.height = 1000 - this.margin.top - this.margin.bottom;
@@ -40,6 +43,15 @@ class bubbleChart{
             .append('input')
             .attr('type', 'button')
             .attr('value', 'Show Extremes')
+
+        d3.select('#switchContainer')
+            //.append('text')
+            .append('input')
+            .attr('type', 'button')
+            .attr('value','Reset the table')
+            .attr('id', 'tableReset')
+            .on('click', d=> this.tableReset())
+
 
         //Graph Label
         var graphLabel = d3.select('#bubbleChart')
@@ -138,6 +150,11 @@ class bubbleChart{
             .append('text')
             .classed('label',true);
 
+        //brush container
+        d3.select('#bubbleChart-svg')
+            .append('g')
+            .attr('id', 'brushContainer');
+
         //this.createBrush()
 
         this.bubbleChart('sourceX', 'sourceY')
@@ -147,9 +164,10 @@ class bubbleChart{
 
     createBrush(){
         //Brushes
+
         var brushGroups = []
         for(var i=0; i<this.uniqueCats.length; i++){
-            brushGroups[i] = d3.select('#bubbleChart-svg')
+            brushGroups[i] = d3.select('#brushContainer')
                 .append('g')
                 .attr('id',`${this.uniqueCats[i]}brush`)
                 .attr('transform', `translate(${this.margin.left},0)`)
@@ -215,6 +233,8 @@ class bubbleChart{
             .attr('y2',y2)
             .style('stroke-width',2)
             .style('stroke','black')
+        
+        this.createBrush()
 
     }
 
@@ -295,6 +315,11 @@ class bubbleChart{
         return cx <= x0 || cx >= x1
     }
 
+    isNotBrushed(brush_coors, cx){
+        var x0 = brush_coors[0],
+            x1 = brush_coors[1];
+        return cx >= x0 && cx <= x1
+    }
 
     updateBubbles(){
         //Detect which brush was selected
@@ -308,12 +333,17 @@ class bubbleChart{
             //We need to gray out all circles that are not in the selection
             if(document.getElementById('topicCheck').checked){
                 //This need to update the table
-                var selectedGov = this.govData.filter(d=>  d[this.xVal] >bubbleSelection[0] &&  d[this.xVal] < bubbleSelection[1] && d.category == brushSelection)
-                this.table.updateTable(selectedGov)
+                //var selectedGov = this.govData.filter(d=>  d[this.xVal] >bubbleSelection[0] &&  d[this.xVal] < bubbleSelection[1] && d.category == brushSelection)
+                this.selectedGov = this.selectedGov.concat(this.govData.filter(d=>  d[this.xVal] >bubbleSelection[0] &&  d[this.xVal] < bubbleSelection[1] && d.category == brushSelection))
+                
+                this.table.updateTable(this.selectedGov)
 
                 d3.select('#bubbleChart-svg')
                     .selectAll('circle')
                     .classed('unselected', true);
+                
+
+                //Do something like
                 var allCircles = d3.select('#bubbleChart-svg')
                     .selectAll('circle')
                     .filter(d=> d.category === brushSelection)
@@ -321,9 +351,17 @@ class bubbleChart{
                 allCircles.classed('unselected', function(d){
                     return that.isBrushed(bubbleSelection, Number(d[that.xVal]))
                     })
+                
+                allCircles.classed('selected', d=> that.isNotBrushed(bubbleSelection, Number(d[that.xVal])))
+
+                d3.selectAll('.selected')
+                    .classed('unselected', false);
+
 
             }else{
-                var selectedGov = this.govData.filter(d=>  d[this.xVal] >bubbleSelection[0] &&  d[this.xVal] < bubbleSelection[1])
+                this.selectedGov = this.selectedGov.concat(this.govData.filter(d=>  d[this.xVal] >bubbleSelection[0] &&  d[this.xVal] < bubbleSelection[1]))
+                console.log(this.selectedGov)
+
                 var allCircles = d3.select('#bubbleChart-svg')
                     .selectAll('circle')
 
@@ -331,7 +369,7 @@ class bubbleChart{
                     return that.isBrushed(bubbleSelection, Number(d[that.xVal]))
                     })
                 
-                this.table.updateTable(selectedGov)
+                this.table.updateTable(this.selectedGov)
             }
         }
     }
@@ -339,12 +377,20 @@ class bubbleChart{
     brushClear(){
         d3.selectAll('.brush').remove()
         d3.selectAll('.unselected').classed('unselected',false)
+        d3.selectAll('.selected').classed('selected', false)
+        //this.selectedGov = this.govData
+        // this.table.updateTable(this.selectedGov)
         this.createBrush()
-        //Brushes
+        //Brushe
         // for(var i=0; i<this.uniqueCats.length; i++){
         //     this[`${this.uniqueCats[i]}Brush`].clear()
         //     //hazjjkfkj
         //}
 
+    }
+
+    tableReset(){
+            this.selectedGov = [];
+            this.table.updateTable(this.govData)
     }
 }
