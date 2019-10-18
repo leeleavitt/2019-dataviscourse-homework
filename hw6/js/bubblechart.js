@@ -43,6 +43,7 @@ class bubbleChart{
             .append('input')
             .attr('type', 'button')
             .attr('value', 'Show Extremes')
+            .on('click', d=> this.story())
 
         d3.select('#switchContainer')
             //.append('text')
@@ -134,7 +135,7 @@ class bubbleChart{
             return self.indexOf(value) === index
         }
         //unique categories
-        this.uniqueCats = this.govData.map(d=>d.category).filter(unique)
+        this.uniqueCats = this.govData.map(d=>d.category.replace('/','_')).filter(unique)
         var colors = ["#1b9e77","#d95f02","#7570b3","#e7298a","#66a61e","#e6ab02","#a6761d","#666666"]
         this.bubbleColors = d3.scaleOrdinal()
             .domain(this.uniqueCats)        
@@ -180,8 +181,6 @@ class bubbleChart{
                 })
             brushGroups[i].call(this[`${this.uniqueCats[i]}Brush`])
         }
-
-
     }
 
     bubbleChart(xValuePointer, yValuePointer){
@@ -393,4 +392,18 @@ class bubbleChart{
             this.selectedGov = [];
             this.table.updateTable(this.govData)
     }
+
+    story(){
+        console.log(this)
+        //Select the group container of the brush
+        var brushObj = d3.select('#educationbrush')   
+        //Now you can use the brush stoted in this, to call on the
+        //function move, to change the brush objects container location         
+        this['educationBrush'].move(brushObj,[10,20])
+
+        //Now I will work on designing each locations brush region
+        var brushObj2 = d3.select(`#${this.uniqueCats[1]}brush`)
+        this[`${this.uniqueCats[1]}Brush`].move(brushObj2,[50,100])
+    }
+    
 }
