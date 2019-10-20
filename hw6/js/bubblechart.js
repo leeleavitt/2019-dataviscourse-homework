@@ -14,6 +14,7 @@ class bubbleChart{
         this.margin = { top: 20, right: 20, bottom: 60, left: 10 };
         this.width = 1000 - this.margin.left - this.margin.right;
         this.height = 1000 - this.margin.top - this.margin.bottom;
+        this.storyCounter = 0;
 
         console.log(govData)
 
@@ -135,7 +136,8 @@ class bubbleChart{
             return self.indexOf(value) === index
         }
         //unique categories
-        this.uniqueCats = this.govData.map(d=>d.category.replace('/','_')).filter(unique)
+        this.uniqueLabs = this.govData.map(d=>d.category).filter(unique)
+        this.uniqueCats = this.govData.map(d=>d.category.replace('/','_').split(' ')[0]).filter(unique)
         var colors = ["#1b9e77","#d95f02","#7570b3","#e7298a","#66a61e","#e6ab02","#a6761d","#666666"]
         this.bubbleColors = d3.scaleOrdinal()
             .domain(this.uniqueCats)        
@@ -156,6 +158,10 @@ class bubbleChart{
             .append('g')
             .attr('id', 'brushContainer');
 
+        
+        //Brush object
+        this.brushes = []
+
         //this.createBrush()
 
         this.bubbleChart('sourceX', 'sourceY')
@@ -165,23 +171,38 @@ class bubbleChart{
 
     createBrush(){
         //Brushes
-
         var brushGroups = []
         for(var i=0; i<this.uniqueCats.length; i++){
+            //BRUSH CONTAINER
             brushGroups[i] = d3.select('#brushContainer')
                 .append('g')
                 .attr('id',`${this.uniqueCats[i]}brush`)
                 .attr('transform', `translate(${this.margin.left},0)`)
                 .attr('class','brush');
             
+            //BRUSH
+            var brushID = this.uniqueCats[i]
             this[`${this.uniqueCats[i]}Brush`] = d3.brushX()
                 .extent([[0, (i*135)+38], [this.width,(i*135)+170]])
                 .on('end',()=>{
+                    console.log('hi')
                     this.updateBubbles()
                 })
+
+            //CALL BRUSH from the brush container
             brushGroups[i].call(this[`${this.uniqueCats[i]}Brush`])
         }
     }
+
+    createBrushv2(val){
+      const brush = d3
+        .brushX()
+        .extent([[0, (i*135)+38], [this.width,(i*135)+170]])
+
+    }
+
+    populateBrush(){}
+
 
     bubbleChart(xValuePointer, yValuePointer){
         var that = this
@@ -189,7 +210,8 @@ class bubbleChart{
         this.yVal = yValuePointer
 
 
-        var bubbles = d3.select('#bubbleChart-svg').selectAll('circle').data(this.govData)
+        var bubbles = d3.select('#bubbleChart-svg')
+            .selectAll('circle').data(this.govData)
 
         // To allow for on transitions, you must bind it to the enter selection
         var bubblesEnter = bubbles
@@ -216,10 +238,10 @@ class bubbleChart{
             .attr('cx', d=>d[this.xVal])
             .attr('cy', d=> d[this.yVal])
             .attr('r', d=>this.bubbleScale(d.total))
-            .attr('fill',d=>this.bubbleColors(d.category))
+            .attr('fill',d=>this.bubbleColors(d.category.replace('/','_').split(' ')[0]))
             .attr('stroke','black')
             .attr('stroke-width',1)
-            .attr('class', d=>d.category);
+            .attr('class', d=>d.category.replace('/','_').split(' ')[0]);
             
         //Add the 0 line
         var y2 =  Math.max(...this.govData.map(d=>d[yValuePointer])) + 150
@@ -233,17 +255,19 @@ class bubbleChart{
             .style('stroke-width',2)
             .style('stroke','black')
         
-        this.createBrush()
+        this.createBrushv2()
+
 
     }
 
     updateBubbleChart(){
+        
         if(document.getElementById('topicCheck').checked){
             //TEXT CATS 
             console.log(this.uniqueCats)
             var txtCats = d3.select('#bubbleChart-svg')
                 .selectAll('text.label')
-                .data(this.uniqueCats)
+                .data(this.uniqueLabs)
             
             var txtCatsEnter= txtCats
                 .enter()
@@ -320,20 +344,25 @@ class bubbleChart{
         return cx >= x0 && cx <= x1
     }
 
-    updateBubbles(){
-        //Detect which brush was selected
-        var brushSelection =  d3.event.sourceEvent.path[1].id.replace('brush','')
-        console.log(brushSelection)
-        //Now filter the 
-        var bubbleSelection = d3.event.selection
-        //console.log(bubbleSelection)
+
+    updateBubbles(input){
+        //console.log(input)
+        //console.log(d3.event)
+        //var brushSelection =  d3.event.sourceEvent.path[1].id.replace('brush','')
+        var brushSelection = input
+
+        var bubbleSelection = 'hi'
+        //var bubbleSelection = input
+        
+        //If selection is not null 
+        // see if the topic sep is checked
         if(bubbleSelection!== null){
             var that = this
             //We need to gray out all circles that are not in the selection
             if(document.getElementById('topicCheck').checked){
                 //This need to update the table
-                //var selectedGov = this.govData.filter(d=>  d[this.xVal] >bubbleSelection[0] &&  d[this.xVal] < bubbleSelection[1] && d.category == brushSelection)
-                this.selectedGov = this.selectedGov.concat(this.govData.filter(d=>  d[this.xVal] >bubbleSelection[0] &&  d[this.xVal] < bubbleSelection[1] && d.category == brushSelection))
+                //var selectedGov = this.govData.filter(d=>  d[this.xVal] >bubbleSelection[0] &&  d[this.xVal] < bubbleSelection[1] && d.category.replace('/','_')) == brushSelection)
+                this.selectedGov = this.selectedGov.concat(this.govData.filter(d=>  d[this.xVal] >bubbleSelection[0] &&  d[this.xVal] < bubbleSelection[1] && d.category.replace('/','_').split(' ')[0] == brushSelection))
                 
                 this.table.updateTable(this.selectedGov)
 
@@ -345,7 +374,7 @@ class bubbleChart{
                 //Do something like
                 var allCircles = d3.select('#bubbleChart-svg')
                     .selectAll('circle')
-                    .filter(d=> d.category === brushSelection)
+                    .filter(d=> d.category.replace('/','_').split(' ')[0] === brushSelection)
 
                 allCircles.classed('unselected', function(d){
                     return that.isBrushed(bubbleSelection, Number(d[that.xVal]))
@@ -359,7 +388,7 @@ class bubbleChart{
 
             }else{
                 this.selectedGov = this.selectedGov.concat(this.govData.filter(d=>  d[this.xVal] >bubbleSelection[0] &&  d[this.xVal] < bubbleSelection[1]))
-                console.log(this.selectedGov)
+                //console.log(this.selectedGov)
 
                 var allCircles = d3.select('#bubbleChart-svg')
                     .selectAll('circle')
@@ -379,7 +408,7 @@ class bubbleChart{
         d3.selectAll('.selected').classed('selected', false)
         //this.selectedGov = this.govData
         // this.table.updateTable(this.selectedGov)
-        this.createBrush()
+        this.createBrushv2()
         //Brushe
         // for(var i=0; i<this.uniqueCats.length; i++){
         //     this[`${this.uniqueCats[i]}Brush`].clear()
@@ -394,16 +423,46 @@ class bubbleChart{
     }
 
     story(){
-        console.log(this)
-        //Select the group container of the brush
-        var brushObj = d3.select('#educationbrush')   
-        //Now you can use the brush stoted in this, to call on the
-        //function move, to change the brush objects container location         
-        this['educationBrush'].move(brushObj,[10,20])
+        //console.log(this)
+        // //Select the group container of the brush
+        // var brushObj = d3.select('#educationbrush')   
+        // //Now you can use the brush stoted in this, to call on the
+        // //function move, to change the brush objects container location         
+        // this['educationBrush'].move(brushObj,[10,20])
 
         //Now I will work on designing each locations brush region
-        var brushObj2 = d3.select(`#${this.uniqueCats[1]}brush`)
-        this[`${this.uniqueCats[1]}Brush`].move(brushObj2,[50,100])
+        if(this.storyCounter === 0 ){
+            var preSel = [[90,182],[132,245],[129, 248],[161, (161+50)], [126, (126+76)], [361,(361+61)]]
+            for(var i=0; i< this.uniqueCats.length; i++){
+                var brushObj = d3.select('#brushContainer')
+                    .select(`#${this.uniqueCats[i]}brush`)
+                this[`${this.uniqueCats[i]}Brush`]
+                    .move(brushObj, preSel[i])
+
+            }
+        this.storyCounter = this.storyCounter+1
+        }else{
+            var preSel = [[634, 634+92],[510,510+238],[746, 746+132],[624, (624+50)], [471, (471+66)], [550,(550+95)]]
+            for(var i=0; i< this.uniqueCats.length; i++){
+                d3.select(`#${this.uniqueCats[i]}brush`)
+                    .transition()
+                    .call(this[`${this.uniqueCats[i]}Brush`].move, preSel[i])
+                
+                // console.log(d3.select(`#${this.uniqueCats[i]}brush`).transition())
+                // var newBrush = this[`${this.uniqueCats[i]}Brush`]
+                // newBrush.move(d3.select(`#${this.uniqueCats[i]}brush`).transition(), preSel[i])
+                // this[`${this.uniqueCats[i]}Brush`]
+                //     .move(brushObj.transition().duration(200), preSel[i])
+
+                
+                // var brushObj = d3.select('#brushContainer')
+                //     .select(`#${this.uniqueCats[i]}brush`)
+                // console.log(brushObj)
+                // this[`${this.uniqueCats[i]}Brush`]
+                //     .move(brushObj.transition().duration(200), preSel[i])
+            }
+        this.storyCounter = 0;
+        }
     }
     
 }

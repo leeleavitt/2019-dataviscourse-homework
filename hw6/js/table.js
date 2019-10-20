@@ -169,11 +169,11 @@ class Table{
                 sortLogic[i] = !sortLogic[i];
                 if(sortLogic[i]){
                     this.govData.sort((a,b) => (Number(a[headerVals[i]]) < Number(b[headerVals[i]])) ? 1:-1)
-                    console.log(this.govData)
+                    //console.log(this.govData)
                     this.updateTable(data)
                 }else{
                     this.govData.sort((a,b) => (Number(a[headerVals[i]]) > Number(b[headerVals[i]])) ? 1:-1)
-                    console.log(this.govData)
+                    //console.log(this.govData)
                     this.updateTable(data)                    
                 }
             }
@@ -188,7 +188,7 @@ class Table{
 
     updateTable(data){
         
-        console.log(this.govData)
+        //console.log(this.govData)
         var tableRows = d3.select('#govTable')
             .select('tbody')
             .selectAll('tr').html(null)
