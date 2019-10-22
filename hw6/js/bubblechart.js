@@ -178,7 +178,7 @@ class bubbleChart{
                 .append('g')
                 .attr('id',`${this.uniqueCats[i]}brush`)
                 .attr('transform', `translate(${this.margin.left},0)`)
-                .attr('class','brush');
+                .attr('class','brush');1
             
             //BRUSH
             var brushID = this.uniqueCats[i]
@@ -186,7 +186,7 @@ class bubbleChart{
                 .extent([[0, (i*135)+38], [this.width,(i*135)+170]])
                 .on('end',()=>{
                     console.log('hi')
-                    this.updateBubbles()
+                    this.updateBubbles(i)
                 })
 
             //CALL BRUSH from the brush container
@@ -194,11 +194,29 @@ class bubbleChart{
         }
     }
 
-    createBrushv2(val){
-      const brush = d3
-        .brushX()
-        .extent([[0, (i*135)+38], [this.width,(i*135)+170]])
+    createBrushv2(){
+        var that =this
+        var brushContainer = d3.select('#brushContainer')
+            .selectAll('g')
+            .data(this.uniqueCats)
+        
+        var brushContainerEnter = brushContainer
+            .enter()
+            .append('g')
+            //.append(this);
 
+        brushContainer = brushContainerEnter.merge(brushContainer)
+            .attr('transform', `translate(${this.margin.left},0)`)
+            .attr('class','brush')
+            .each( function(d,i){
+                //console.log(i)
+                var there = this
+                //console.log(there)
+                d3.brushX()
+                    .extent([[0,(i*135)+38], [that.width,(i*135)+170]])
+                    .on('end',that.updateBubbles.bind(that))(d3.select(this))
+            })
+    
     }
 
     populateBrush(){}
@@ -346,13 +364,15 @@ class bubbleChart{
 
 
     updateBubbles(input){
-        //console.log(input)
+        console.log(this)
+        console.log(input)
         //console.log(d3.event)
         //var brushSelection =  d3.event.sourceEvent.path[1].id.replace('brush','')
         var brushSelection = input
 
-        var bubbleSelection = 'hi'
-        //var bubbleSelection = input
+        //var bubbleSelection = 'hi'
+        var bubbleSelection = d3.event
+        console.log()
         
         //If selection is not null 
         // see if the topic sep is checked
