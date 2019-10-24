@@ -185,7 +185,6 @@ class bubbleChart{
             this[`${this.uniqueCats[i]}Brush`] = d3.brushX()
                 .extent([[0, (i*135)+38], [this.width,(i*135)+170]])
                 .on('end',()=>{
-                    console.log('hi')
                     this.updateBubbles(i)
                 })
 
@@ -208,16 +207,16 @@ class bubbleChart{
         brushContainer = brushContainerEnter.merge(brushContainer)
             .attr('transform', `translate(${this.margin.left},0)`)
             .attr('class','brush')
+            .attr('id',(d,i)=>`${this.uniqueCats[i]}brush`)
             .each( function(d,i){
-                //console.log(i)
                 var there = this
-                //console.log(there)
                 d3.brushX()
                     .extent([[0,(i*135)+38], [that.width,(i*135)+170]])
                     .on('end',that.updateBubbles.bind(that))(d3.select(this))
             })
     
     }
+    
 
     populateBrush(){}
 
@@ -263,7 +262,6 @@ class bubbleChart{
             
         //Add the 0 line
         var y2 =  Math.max(...this.govData.map(d=>d[yValuePointer])) + 150
-        console.log(y2)
         d3.select('#backGroundLine')
             .transition().duration(500)
             .attr('x1', that.xScale(0))
@@ -282,7 +280,6 @@ class bubbleChart{
         
         if(document.getElementById('topicCheck').checked){
             //TEXT CATS 
-            console.log(this.uniqueCats)
             var txtCats = d3.select('#bubbleChart-svg')
                 .selectAll('text.label')
                 .data(this.uniqueLabs)
@@ -364,15 +361,15 @@ class bubbleChart{
 
 
     updateBubbles(input){
-        console.log(this)
-        console.log(input)
-        //console.log(d3.event)
         //var brushSelection =  d3.event.sourceEvent.path[1].id.replace('brush','')
-        var brushSelection = input
-
-        //var bubbleSelection = 'hi'
-        var bubbleSelection = d3.event
-        console.log()
+        
+        if(typeof(input) === 'object' && typeof(input)[0] !== 'number'){
+            var brushSelection = input.category
+            var bubbleSelection = input.data
+        }else{
+            var brushSelection = d3.event.sourceEvent.path[1].id.replace('brush','')
+            var bubbleSelection = d3.event.selection
+        }
         
         //If selection is not null 
         // see if the topic sep is checked
@@ -408,7 +405,6 @@ class bubbleChart{
 
             }else{
                 this.selectedGov = this.selectedGov.concat(this.govData.filter(d=>  d[this.xVal] >bubbleSelection[0] &&  d[this.xVal] < bubbleSelection[1]))
-                //console.log(this.selectedGov)
 
                 var allCircles = d3.select('#bubbleChart-svg')
                     .selectAll('circle')
@@ -438,50 +434,91 @@ class bubbleChart{
     }
 
     tableReset(){
+            this.storyCounter = 0
             this.selectedGov = [];
-            this.table.updateTable(this.govData)
+            this.table.updateTable(this.govData);
     }
 
     story(){
-        //console.log(this)
-        // //Select the group container of the brush
-        // var brushObj = d3.select('#educationbrush')   
-        // //Now you can use the brush stoted in this, to call on the
-        // //function move, to change the brush objects container location         
-        // this['educationBrush'].move(brushObj,[10,20])
+        if(this.storyCounter === 0){
+            var paneWrap =  s3.select('body').append('div').attr('class','pane')
+            var pane = paneWrap.append(svg)
+            var rect = pane.append('rect')
+                .classed('pane-rect', true)
+                .attr('opacity',0)
+                .transition()
+                .delay(500).attr('opacity',0.5)
 
-        //Now I will work on designing each locations brush region
-        if(this.storyCounter === 0 ){
-            var preSel = [[90,182],[132,245],[129, 248],[161, (161+50)], [126, (126+76)], [361,(361+61)]]
-            for(var i=0; i< this.uniqueCats.length; i++){
-                var brushObj = d3.select('#brushContainer')
-                    .select(`#${this.uniqueCats[i]}brush`)
-                this[`${this.uniqueCats[i]}Brush`]
-                    .move(brushObj, preSel[i])
+            
 
-            }
-        this.storyCounter = this.storyCounter+1
+
+
+
+
+
+
+            this.tableReset()
+            document.getElementById('topicCheck').checked=true;
+            //this.updateBubbleChart();
+
+
+            var that = this;
+            var preSel = [[90,182],[8,245],[129, 248],[161, (161+50)], [126, (126+76)], [361,(361+61)]];
+            
+            var brushes = d3.select('#brushContainer')
+                .selectAll('g')
+                .data(preSel);
+            
+            var brushesEnter = brushes
+                .enter()
+                .append('g');
+            
+            brushes.exit().remove();
+
+            brushes = brushesEnter.merge(brushes);
+
+            brushes
+                .transition().duration(500)
+                .each(function(d,i){
+                    d3.brushX().move(d3.select(this), d)
+                    var newObj = {}
+                    newObj['category'] = that.uniqueCats[i]
+                    newObj['data'] = d
+                    that.updateBubbles(newObj)
+                });
+            that.storyCounter = 1;
+            //CHECK THE TOPIC CHECKBOX
+
+
         }else{
-            var preSel = [[634, 634+92],[510,510+238],[746, 746+132],[624, (624+50)], [471, (471+66)], [550,(550+95)]]
-            for(var i=0; i< this.uniqueCats.length; i++){
-                d3.select(`#${this.uniqueCats[i]}brush`)
-                    .transition()
-                    .call(this[`${this.uniqueCats[i]}Brush`].move, preSel[i])
-                
-                // console.log(d3.select(`#${this.uniqueCats[i]}brush`).transition())
-                // var newBrush = this[`${this.uniqueCats[i]}Brush`]
-                // newBrush.move(d3.select(`#${this.uniqueCats[i]}brush`).transition(), preSel[i])
-                // this[`${this.uniqueCats[i]}Brush`]
-                //     .move(brushObj.transition().duration(200), preSel[i])
+            //Add line to the tab    
 
-                
-                // var brushObj = d3.select('#brushContainer')
-                //     .select(`#${this.uniqueCats[i]}brush`)
-                // console.log(brushObj)
-                // this[`${this.uniqueCats[i]}Brush`]
-                //     .move(brushObj.transition().duration(200), preSel[i])
-            }
-        this.storyCounter = 0;
+            var preSel = [[663, 634+92],[510,510+238],[746, 746+132],[624, (624+50)], [471, (471+66)], [550,(550+95)]]
+            var that = this;
+            
+            var brushes = d3.select('#brushContainer')
+                .selectAll('g')
+                .data(preSel)
+            
+            var brushesEnter = brushes
+                .enter()
+                .append('g')
+            
+            brushes.exit().remove()
+
+            brushes = brushesEnter.merge(brushes)
+
+            brushes
+                .transition().duration(500)
+                .each(function(d,i){
+                    d3.brushX().move(d3.select(this), d)
+                    var newObj = {}
+                    newObj['category'] = that.uniqueCats[i]
+                    newObj['data'] = d
+                    that.updateBubbles(newObj)
+                })
+            
+            this.storyCounter = 0
         }
     }
     
