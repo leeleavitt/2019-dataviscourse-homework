@@ -28,7 +28,7 @@ class Table{
         this.frequencyScale = d3
             .scaleLinear()
             .domain([0, 1])
-            .range([this.cell.buffer, 100])
+            .range([this.cell.buffer, 120])
             .nice();
 
         this.percentagesScale = d3
@@ -100,7 +100,7 @@ class Table{
 
         d3.select('#headerFrequency')
             .append('g')    
-            .attr('transform',`translate(${0},${50})`)
+            .attr('transform',`translate(${8},${50})`)
             .call(frequencyAxis)
         
         //PERCENTAGE HEADER
@@ -111,7 +111,7 @@ class Table{
         
         d3.select("#headerPercentages")
             .append('g')
-            .attr('transform', `translate(0,${50})`)
+            .attr('transform', `translate(10,${50})`)
             .call(percentagesAxis);
 
         //Now append the table Body
@@ -214,7 +214,7 @@ class Table{
                 var percentages = {
                     'value':{
                         'd_speech':d.percent_of_d_speeches,
-                        'r_speech':d.percent_of_d_speeches
+                        'r_speech':d.percent_of_r_speeches
                     },
                     'vis':'percentages'
                 }
@@ -274,7 +274,7 @@ class Table{
                 .attr('stroke-width',1)
 
             tableCollumns
-                .attr('style','text-align: center')
+                //.attr('style','text-align: center')
                 //.attr('style','vertical-align: middle')
                 .filter(d=>d.vis == 'total')
                 .append('text')

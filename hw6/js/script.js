@@ -26,6 +26,7 @@ d3.json('/data/words.json').then(data =>{
     document.addEventListener("click", function(e) {
         console.log('you clicked')
         bChart.brushClear()
+        bChart.paneClear()
         //TODO - Your code goes here - 
 		// call clear highight methods
     }, true);

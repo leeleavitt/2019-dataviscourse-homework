@@ -35,15 +35,15 @@ class bubbleChart{
             .append('input')
             .attr('type', 'checkbox')
             .attr('id', 'topicCheck')
-            // .attr('data-toggle', 'toggle')
-            // .attr('data-size', 'mini')
+            .attr('data-toggle', 'toggle')
+            .attr('data-size', 'mini')
             .on('click',d=>this.updateBubbleChart())
             .append('span')
 
         d3.select('#switchContainer')
             .append('input')
             .attr('type', 'button')
-            .attr('value', 'Show Extremes')
+            .attr('value', 'Show Extremes Click Twice')
             .on('click', d=> this.story())
 
         d3.select('#switchContainer')
@@ -104,7 +104,7 @@ class bubbleChart{
             .select('.wrapper-group')
             .append('g')
             .attr('id','x-axis')
-            .attr('transform',`translate(${this.margin.left},${this.margin.top})`)
+            .attr('transform',`translate(${this.margin.left - 10},${this.margin.top})`)
         
         //Add the xaxis to the plot
         var xMax = Math.max(...this.govData.map(d=>d.position))
@@ -116,7 +116,8 @@ class bubbleChart{
             .nice();
         
         var xAxis = d3.axisTop(this.xScale)
-        xAxis.scale(this.xScale)
+        var xAxisValues = [50,40,30,20,10,0,10,20,30,40,50,60]
+        xAxis.scale(this.xScale).ticks(12).tickFormat((d,i)=>xAxisValues[i])
 
         d3.select('#x-axis')
             .classed('axis',true)
@@ -158,7 +159,10 @@ class bubbleChart{
             .append('g')
             .attr('id', 'brushContainer');
 
-        
+        //story
+
+
+
         //Brush object
         this.brushes = []
 
@@ -208,6 +212,7 @@ class bubbleChart{
             .attr('transform', `translate(${this.margin.left},0)`)
             .attr('class','brush')
             .attr('id',(d,i)=>`${this.uniqueCats[i]}brush`)
+            .transition()
             .each( function(d,i){
                 var there = this
                 d3.brushX()
@@ -433,6 +438,10 @@ class bubbleChart{
 
     }
 
+    paneClear(){
+        d3.select('.pane').remove()
+    }
+
     tableReset(){
             this.storyCounter = 0
             this.selectedGov = [];
@@ -441,29 +450,14 @@ class bubbleChart{
 
     story(){
         if(this.storyCounter === 0){
-            var paneWrap =  s3.select('body').append('div').attr('class','pane')
-            var pane = paneWrap.append(svg)
-            var rect = pane.append('rect')
-                .classed('pane-rect', true)
-                .attr('opacity',0)
-                .transition()
-                .delay(500).attr('opacity',0.5)
-
+            this.tableReset()
+            document.getElementById('topicCheck').checked=true;
+            this.updateBubbleChart();
             
 
 
-
-
-
-
-
-            this.tableReset()
-            document.getElementById('topicCheck').checked=true;
-            //this.updateBubbleChart();
-
-
             var that = this;
-            var preSel = [[90,182],[8,245],[129, 248],[161, (161+50)], [126, (126+76)], [361,(361+61)]];
+            var preSel = [[90,182],[8,(8+95)],[129, 248],[161, (161+34)], [126, (126+76)], [361,(361+54)]];
             
             var brushes = d3.select('#brushContainer')
                 .selectAll('g')
@@ -478,7 +472,6 @@ class bubbleChart{
             brushes = brushesEnter.merge(brushes);
 
             brushes
-                .transition().duration(500)
                 .each(function(d,i){
                     d3.brushX().move(d3.select(this), d)
                     var newObj = {}
@@ -491,6 +484,50 @@ class bubbleChart{
 
 
         }else{
+            var paneWrap =  d3.select('body').append('div').attr('class','pane')
+            var pane = paneWrap.append('svg')
+            pane.append('line')
+                .transition().duration(500)
+                .attr('x1',0)
+                .attr('x1',900)
+                .attr('y1',0)
+                .attr('y2',0)
+                .attr('transform','translate(1000,623)')
+                .attr('stroke','black')
+
+            pane.append('rect')
+                .transition().duration(500)
+                .attr('width',320)
+                .attr('height',50)
+                .attr('transform','translate(1900, 300)')
+                .attr('stroke','black')
+                .attr('rx',15)
+                .attr('fill','pink')
+
+            pane.append('text')
+                .transition().duration(500)
+                .attr('transform','translate(1910, 327)')
+                .attr('font-weight','bold')
+                .text('Top 3 Democratic nGrams per Category')
+
+            
+            pane.append('rect')
+                .transition().duration(500)
+                .attr('width',320)
+                .attr('height',50)
+                .attr('transform','translate(1900, 900)')
+                .attr('stroke','black')
+                .attr('rx',15)
+                .attr('fill','pink')
+
+            pane.append('text')
+                .transition().duration(500)
+                .attr('transform','translate(1910, 927)')
+                .attr('font-weight','bold')
+                .text('Top 3 Republican nGrams Per Category')
+
+
+        
             //Add line to the tab    
 
             var preSel = [[663, 634+92],[510,510+238],[746, 746+132],[624, (624+50)], [471, (471+66)], [550,(550+95)]]
@@ -509,7 +546,6 @@ class bubbleChart{
             brushes = brushesEnter.merge(brushes)
 
             brushes
-                .transition().duration(500)
                 .each(function(d,i){
                     d3.brushX().move(d3.select(this), d)
                     var newObj = {}
